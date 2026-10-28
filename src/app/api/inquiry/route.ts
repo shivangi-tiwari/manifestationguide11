@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { writeClient } from '@/lib/sanity/writeClient'
+import { sanityWriteClient } from '@/lib/sanity/writeClient'
 import { Resend } from 'resend'
 
 const inquirySchema = z.object({
@@ -123,14 +123,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Get package name for emails
-    const packageDoc = await writeClient.fetch(
+    const packageDoc = await sanityWriteClient.fetch(
       `*[_type == "package" && _id == $id][0]{title}`,
       { id: data.package }
     )
     const packageName = packageDoc?.title || 'Unknown Package'
 
     // Store in Sanity
-    await writeClient.create({
+    await sanityWriteClient.create({
       _type: 'inquiry',
       name: data.name,
       email: data.email,
