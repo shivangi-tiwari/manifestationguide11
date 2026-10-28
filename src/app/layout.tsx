@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import { Providers } from '@/components/providers'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -26,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased">
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   )
