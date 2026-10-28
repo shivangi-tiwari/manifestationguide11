@@ -1,7 +1,7 @@
-import { PortableTextReactComponents, PortableTextBlock } from '@portabletext/react'
+import { PortableText as PortableTextRenderer, PortableTextComponents, PortableTextBlock } from '@portabletext/react'
 import { clsx } from 'clsx'
 
-const components: PortableTextReactComponents = {
+const components: PortableTextComponents = {
   block: {
     normal: ({ children }) => <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">{children}</p>,
     h1: ({ children }) => <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 mt-8">{children}</h1>,
@@ -50,7 +50,7 @@ export function PortableText({ value, className }: PortableTextProps) {
 
   return (
     <div className={clsx('prose dark:prose-invert max-w-none', className)}>
-      <PortableTextReactComponents.PortableText
+      <PortableTextRenderer
         value={value}
         components={components}
       />
