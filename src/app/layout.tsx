@@ -2,19 +2,54 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Manifest with [Coach Name]',
-  description: 'Transform your reality through manifestation coaching, courses, and community.',
-  keywords: ['manifestation', 'coaching', 'law of attraction', 'spiritual growth', 'personal development'],
+  title: {
+    default: 'Manifestation Coach - Transform Your Reality',
+    template: '%s | Manifestation Coach',
+  },
+  description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
+  keywords: ['manifestation', 'coaching', 'law of attraction', 'mindset', 'personal development', 'spirituality'],
+  authors: [{ name: 'Manifestation Coach' }],
+  creator: 'Manifestation Coach',
+  publisher: 'Manifestation Coach',
+  robots: 'index, follow',
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://manifestationcoach.in',
+    siteName: 'Manifestation Coach',
+    title: 'Manifestation Coach - Transform Your Reality',
+    description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
+    images: [
+      {
+        url: '/og-default.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Manifestation Coach',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Manifestation Coach - Transform Your Reality',
+    description: 'Manifest your dream life with proven manifestation techniques.',
+    images: ['/og-default.jpg'],
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
 }
 
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: dark)', color: '#030712' },
   ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 }
 
 export default function RootLayout({
@@ -23,8 +58,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased">
+    <html lang="en" className={`${inter.variable} scroll-smooth`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://www.youtube-nocookie.com" />
+        <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+        <link rel="preconnect" href="https://cdn.sanity.io" />
+        <link rel="dns-prefetch" href="https://cdn.sanity.io" />
+      </head>
+      <body className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-white antialiased">
         {children}
       </body>
     </html>
