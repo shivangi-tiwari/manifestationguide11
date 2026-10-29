@@ -6,6 +6,7 @@ import { Section, SectionHeader } from '@/components/ui/Section'
 import { Card, CardContent } from '@/components/ui/Card'
 import { YouTubeEmbed } from '@/components/ui/YouTubeEmbed'
 import { Button } from '@/components/ui/Button'
+import type { SiteSettings, Video } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Free Manifestation Videos',
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
 
 async function getVideosData() {
   const [siteSettings, videos] = await Promise.all([
-    sanityFetch({ query: queries.siteSettings, tags: ['sanity', 'videos'] }),
-    sanityFetch({ query: queries.videos, tags: ['sanity', 'videos'] }),
+    sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', 'videos'] }),
+    sanityFetch<Video[]>({ query: queries.videos, tags: ['sanity', 'videos'] }),
   ])
   return { siteSettings, videos }
 }
@@ -23,12 +24,12 @@ async function getVideosData() {
 export default async function VideosPage() {
   const { siteSettings, videos } = await getVideosData()
 
-  const categorized = (videos || []).reduce((acc: any, video: any) => {
+  const categorized = (videos || []).reduce((acc: Record<string, Video[]>, video) => {
     const cat = video.category || 'General'
     if (!acc[cat]) acc[cat] = []
     acc[cat].push(video)
     return acc
-  }, {})
+  }, {} as Record<string, Video[]>)
 
   return (
     <MainLayout
@@ -55,13 +56,13 @@ export default async function VideosPage() {
       </Section>
 
       <Section variant="default" size="lg">
-        {Object.entries(categorized).map(([category, categoryVideos]: [string, any]) => (
+        {Object.entries(categorized).map(([category, categoryVideos]) => (
           <div key={category} className="mb-16">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{category}</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {categoryVideos.map((video: any) => (
+              {categoryVideos.map((video) => (
                 <Card key={video._id} variant="outlined" padding="none" className="overflow-hidden flex flex-col">
                   <div className="relative aspect-video">
                     <YouTubeEmbed videoId={video.youtubeId} title={video.title} lazy />

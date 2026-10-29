@@ -11,7 +11,6 @@ interface ContactProps {
   subheadline?: string
   content?: any[]
   packages: Array<{ _id: string; name: string; price: number }>
-  onSubmit: (data: any) => Promise<void>
   turnstileSiteKey: string
   instagramHandle?: string
   email?: string
@@ -22,7 +21,6 @@ export function Contact({
   subheadline,
   content,
   packages,
-  onSubmit,
   turnstileSiteKey,
   instagramHandle,
   email,
@@ -71,7 +69,6 @@ export function Contact({
           <CardContent className="p-8">
             <InquiryForm
               packages={packages}
-              onSubmit={onSubmit}
               turnstileSiteKey={turnstileSiteKey}
             />
           </CardContent>

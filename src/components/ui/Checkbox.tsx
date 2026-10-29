@@ -5,11 +5,12 @@ import { clsx } from 'clsx'
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
-  description?: string
+  description?: React.ReactNode
+  error?: string
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, label, description, id, ...props }, ref) => {
+  ({ className, label, description, error, id, ...props }, ref) => {
     const checkboxId = id || label.toLowerCase().replace(/\s+/g, '-')
 
     return (
@@ -34,6 +35,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             </label>
             {description && (
               <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+            )}
+            {error && (
+              <p className="mt-0.5 text-sm text-red-600 dark:text-red-400">{error}</p>
             )}
           </div>
         </div>

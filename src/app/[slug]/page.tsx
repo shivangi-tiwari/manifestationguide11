@@ -5,20 +5,21 @@ import { queries } from '@/lib/sanity/queries'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Section } from '@/components/ui/Section'
 import { PortableText } from '@/components/ui/PortableText'
+import type { Page, SiteSettings } from '@/types'
 
 interface Props {
   params: Promise<{ slug: string }>
 }
 
 export async function generateStaticParams() {
-  const pages = await sanityFetch({ query: queries.pages, tags: ['sanity'] })
-  return pages?.map((page: any) => ({ slug: page.slug.current })) || []
+  const pages = await sanityFetch<Page[]>({ query: queries.pages, tags: ['sanity'] })
+  return pages?.map((page) => ({ slug: page.slug.current })) || []
 }
 
 async function getPageData(slug: string) {
   const [siteSettings, page] = await Promise.all([
-    sanityFetch({ query: queries.siteSettings, tags: ['sanity', `page-${slug}`] }),
-    sanityFetch({ query: queries.pageBySlug(slug), tags: ['sanity', `page-${slug}`] }),
+    sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', `page-${slug}`] }),
+    sanityFetch<Page | null>({ query: queries.pageBySlug(slug), tags: ['sanity', `page-${slug}`] }),
   ])
   return { siteSettings, page }
 }

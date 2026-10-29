@@ -7,10 +7,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
+  asChild?: boolean
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', loading, children, disabled, asChild, ...props }, ref) => {
     const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
@@ -26,8 +27,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'px-8 py-3 text-lg',
     }
 
+    const Comp = asChild ? 'a' : 'button'
+
     return (
-      <button
+      <Comp
+        // @ts-expect-error - Polymorphic ref for asChild pattern (button vs anchor)
         ref={ref}
         className={clsx(base, variants[variant], sizes[size], className)}
         disabled={disabled || loading}
@@ -40,7 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </svg>
         )}
         {children}
-      </button>
+      </Comp>
     )
   }
 )

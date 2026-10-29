@@ -6,6 +6,7 @@ import { Section, SectionHeader } from '@/components/ui/Section'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { PortableText } from '@/components/ui/PortableText'
+import type { SiteSettings, Package } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Coaching Packages',
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
 
 async function getPackagesData() {
   const [siteSettings, packages] = await Promise.all([
-    sanityFetch({ query: queries.siteSettings, tags: ['sanity', 'packages'] }),
-    sanityFetch({ query: queries.packages, tags: ['sanity', 'packages'] }),
+    sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', 'packages'] }),
+    sanityFetch<Package[]>({ query: queries.packages, tags: ['sanity', 'packages'] }),
   ])
   return { siteSettings, packages }
 }
@@ -42,7 +43,7 @@ export default async function PackagesPage() {
 
       <Section variant="alternate" size="lg">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {packages?.map((pkg: any) => (
+          {packages?.map((pkg) => (
             <Card key={pkg._id} variant={pkg.featured ? 'elevated' : 'outlined'} padding="lg" className="relative flex flex-col">
               {pkg.featured && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">

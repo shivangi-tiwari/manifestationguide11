@@ -3,13 +3,13 @@
 import { HTMLAttributes, forwardRef } from 'react'
 import { clsx } from 'clsx'
 
-interface SectionProps extends HTMLAttributes<HTMLSectionElement> {
+interface SectionProps extends HTMLAttributes<HTMLElement> {
   variant?: 'default' | 'alternate' | 'dark'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
-export const Section = forwardRef<HTMLSectionElement, SectionProps>(
+export const Section = forwardRef<HTMLElement, SectionProps>(
   ({ className, variant = 'default', size = 'lg', children, ...props }, ref) => {
     const variants = {
       default: 'bg-white dark:bg-gray-950',

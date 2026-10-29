@@ -4,6 +4,7 @@ import { queries } from '@/lib/sanity/queries'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Contact } from '@/components/sections/Contact'
 import { Section } from '@/components/ui/Section'
+import type { SiteSettings, Package } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Contact & Inquiries',
@@ -12,14 +13,21 @@ export const metadata: Metadata = {
 
 async function getContactData() {
   const [siteSettings, packages] = await Promise.all([
-    sanityFetch({ query: queries.siteSettings, tags: ['sanity', 'contact'] }),
-    sanityFetch({ query: queries.packages, tags: ['sanity', 'contact'] }),
+    sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', 'contact'] }),
+    sanityFetch<Package[]>({ query: queries.packages, tags: ['sanity', 'contact'] }),
   ])
   return { siteSettings, packages }
 }
 
 export default async function ContactPage() {
   const { siteSettings, packages } = await getContactData()
+
+  // Transform packages to match Contact component's expected shape
+  const contactPackages = (packages || []).map((pkg) => ({
+    _id: pkg._id,
+    name: pkg.title,
+    price: pkg.price,
+  }))
 
   return (
     <MainLayout
@@ -33,7 +41,7 @@ export default async function ContactPage() {
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">Start Your Transformation</h1>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            Submit an inquiry and I'll personally review it within 24 hours. No payment required upfront.
+            Submit an inquiry and I&apos;ll personally review it within 24 hours. No payment required upfront.
           </p>
         </div>
       </Section>
@@ -41,18 +49,7 @@ export default async function ContactPage() {
       <Contact
         headline="Submit Your Inquiry"
         subheadline="Tell me about your goals and I'll recommend the best path forward"
-        packages={packages || []}
-        onSubmit={async (data) => {
-          const res = await fetch('/api/inquiry', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
-          if (!res.ok) {
-            const error = await res.json()
-            throw new Error(error.message || 'Failed to submit inquiry')
-          }
-        }}
+        packages={contactPackages}
         turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
         instagramHandle={siteSettings?.instagramHandle}
         email={siteSettings?.contactEmail}

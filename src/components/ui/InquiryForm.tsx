@@ -6,6 +6,7 @@ import { Button } from './Button'
 import { Input } from './Input'
 import { Textarea } from './Textarea'
 import { Checkbox } from './Checkbox'
+import { submitInquiry } from '@/app/actions/inquiry'
 
 const inquirySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -22,15 +23,13 @@ type InquiryFormData = z.infer<typeof inquirySchema>
 
 interface InquiryFormProps {
   packages: Array<{ _id: string; name: string; price: number }>
-  onSubmit: (data: InquiryFormData) => Promise<void>
   turnstileSiteKey: string
   termsText?: string
   termsUrl?: string
 }
 
-export function InquiryForm({
+function InquiryFormInner({
   packages,
-  onSubmit,
   turnstileSiteKey,
   termsText = 'I agree to the Terms and Conditions',
   termsUrl = '/terms',
@@ -91,18 +90,27 @@ export function InquiryForm({
     setIsSubmitting(true)
 
     try {
-      await onSubmit(result.data)
-      setSubmitStatus('success')
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        package: '',
-        message: '',
-        terms: false,
-        turnstileToken: '',
-        honeypot: '',
+      const formDataToSubmit = new FormData()
+      Object.entries(result.data).forEach(([key, value]) => {
+        formDataToSubmit.append(key, String(value))
       })
+      const response = await submitInquiry(formDataToSubmit)
+      if (response.success) {
+        setSubmitStatus('success')
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          package: '',
+          message: '',
+          terms: false,
+          turnstileToken: '',
+          honeypot: '',
+        })
+      } else {
+        setSubmitStatus('error')
+        setErrorMessage(response.message || 'Something went wrong. Please try again.')
+      }
     } catch (err) {
       setSubmitStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
@@ -129,7 +137,7 @@ export function InquiryForm({
         </div>
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Inquiry Submitted!</h3>
         <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-          Thank you for reaching out. I'll get back to you within 24 hours. Please check your email for a playlist to review before our session.
+          Thank you for reaching out. I&apos;ll get back to you within 24 hours. Please check your email for a playlist to review before our session.
         </p>
       </div>
     )
@@ -175,6 +183,7 @@ export function InquiryForm({
           </label>
           <select
             id="package"
+            name="package"
             value={formData.package || ''}
             onChange={(e) => handleChange('package', e.target.value)}
             className={clsx(
@@ -257,3 +266,7 @@ export function InquiryForm({
 }
 
 import { clsx } from 'clsx'
+
+export function InquiryForm(props: InquiryFormProps) {
+  return <InquiryFormInner {...props} />
+}

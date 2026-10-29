@@ -1,4 +1,16 @@
 // Sanity document types (placeholders for Phase 2+)
+import type { PortableTextBlock } from '@portabletext/react'
+
+// Sanity image block type (extends PortableTextBlock for image blocks)
+export interface SanityImageBlock {
+  _type: 'image'
+  asset: {
+    _ref: string
+  }
+  alt?: string
+  caption?: PortableTextBlock[]
+}
+
 export interface SanityDocument {
   _id: string
   _type: string
@@ -6,18 +18,34 @@ export interface SanityDocument {
   _updatedAt: string
 }
 
+export interface Page extends SanityDocument {
+  _type: 'page'
+  title: string
+  slug: { current: string }
+  body: PortableTextBlock[]
+  seo?: {
+    title?: string
+    description?: string
+    ogTitle?: string
+    ogImage?: string
+  }
+}
+
 export interface SiteSettings extends SanityDocument {
   _type: 'siteSettings'
   title: string
   tagline: string
   hero: {
-    heading: string
-    subheading: string
+    title: string
+    subtitle: string
+    videoId?: string
+    videoTitle?: string
     ctaText: string
   }
-  aboutSummary: string
+  aboutSummary: (PortableTextBlock | SanityImageBlock)[]
   contactEmail: string
   whatsappNumber?: string
+  instagramHandle?: string
   socialLinks: {
     instagram?: string
     youtube?: string
@@ -39,11 +67,12 @@ export interface Package extends SanityDocument {
   title: string
   slug: { current: string }
   shortDescription: string
-  fullDescription: unknown // Portable Text
+  fullDescription: PortableTextBlock[]
   price: number
   currency: string
   priceNote?: string
   duration?: string
+  sessions?: number
   featured: boolean
   order: number
   published: boolean
@@ -71,6 +100,7 @@ export interface SuccessStory extends SanityDocument {
   story: unknown // Portable Text
   youtubeVideoId?: string
   date: string
+  location?: string
   featured: boolean
   order: number
   published: boolean
@@ -79,7 +109,7 @@ export interface SuccessStory extends SanityDocument {
 export interface FAQ extends SanityDocument {
   _type: 'faq'
   question: string
-  answer: string
+  answer: PortableTextBlock[]
   order: number
 }
 

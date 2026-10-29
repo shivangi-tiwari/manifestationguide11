@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PortableText } from '@/components/ui/PortableText'
 import { clsx } from 'clsx'
 
 interface FAQItem {
