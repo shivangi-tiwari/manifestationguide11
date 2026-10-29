@@ -3,18 +3,24 @@
 import { HTMLAttributes, forwardRef } from 'react'
 import { clsx } from 'clsx'
 
+type SectionVariant = 'cream' | 'sage' | 'butter' | 'default' | 'alternate' | 'dark' | 'accent'
+
 interface SectionProps extends HTMLAttributes<HTMLElement> {
-  variant?: 'default' | 'alternate' | 'dark'
+  variant?: SectionVariant
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
 export const Section = forwardRef<HTMLElement, SectionProps>(
-  ({ className, variant = 'default', size = 'lg', children, ...props }, ref) => {
-    const variants = {
-      default: 'bg-white dark:bg-gray-950',
-      alternate: 'bg-gray-50 dark:bg-gray-900',
-      dark: 'bg-gray-900 dark:bg-black',
+  ({ className, variant = 'cream', size = 'lg', children, ...props }, ref) => {
+    const variants: Record<SectionVariant, string> = {
+      cream: 'bg-cream',
+      sage: 'bg-sage',
+      butter: 'bg-butter',
+      default: 'bg-cream',
+      alternate: 'bg-sage',
+      dark: 'bg-olive text-cream',
+      accent: 'bg-butter',
     }
 
     const sizes = {
@@ -51,12 +57,12 @@ export const SectionHeader = ({
   align?: 'left' | 'center' | 'right'
   className?: string
 }) => (
-  <div className={clsx(`text-${align} mb-12 md:mb-16`, className)}>
-    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white tracking-tight">
+  <div className={clsx(`text-${align} mb-10 md:mb-14`, className)}>
+    <h2 className="text-display-sm font-display font-semibold text-foreground tracking-tight text-balance">
       {title}
     </h2>
     {subtitle && (
-      <p className="mt-4 md:mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+      <p className="mt-4 md:mt-6 text-body-lg text-muted max-w-3xl mx-auto text-balance">
         {subtitle}
       </p>
     )}

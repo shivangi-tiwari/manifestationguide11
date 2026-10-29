@@ -33,13 +33,13 @@ export function FAQ({ headline = 'Frequently Asked Questions', subheadline, faqs
             <Card key={faq._id} variant="outlined" className="overflow-hidden">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset"
+                className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-inset"
                 aria-expanded={openIndex === index}
                 aria-controls={`faq-answer-${index}`}
               >
-                <span className="font-semibold text-gray-900 dark:text-white text-lg pr-8">{faq.question}</span>
+                <span className="font-semibold text-foreground text-lg pr-8">{faq.question}</span>
                 <svg
-                  className={clsx('w-5 h-5 text-gray-400 flex-shrink-0 transition-transform', openIndex === index && 'rotate-180')}
+                  className={clsx('w-5 h-5 text-muted flex-shrink-0 transition-transform', openIndex === index && 'rotate-180')}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -50,7 +50,7 @@ export function FAQ({ headline = 'Frequently Asked Questions', subheadline, faqs
               </button>
               {openIndex === index && (
                 <CardContent id={`faq-answer-${index}`} className="pt-0 pb-6 px-6 animate-slide-down">
-                  <div className="prose dark:prose-invert max-w-none">
+                  <div className="prose max-w-none">
                     <PortableText value={faq.answer} />
                   </div>
                 </CardContent>
@@ -58,13 +58,6 @@ export function FAQ({ headline = 'Frequently Asked Questions', subheadline, faqs
             </Card>
           ))}
       </div>
-      <style jsx global>{`
-        @keyframes slide-down {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slide-down { animation: slide-down 0.2s ease-out; }
-      `}</style>
     </Section>
   )
 }

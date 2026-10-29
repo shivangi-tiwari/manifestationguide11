@@ -33,6 +33,18 @@ export const siteSettings = defineType({
     defineField({ name: 'youtubeChannelId', title: 'YouTube Channel ID', type: 'string' }),
     defineField({ name: 'mandatoryPlaylistId', title: 'Mandatory Playlist ID (for auto-reply)', type: 'string' }),
     defineField({
+      name: 'mustWatchPlaylistUrl',
+      title: 'Must-Watch Playlist URL',
+      type: 'url',
+      description: 'Paste the link to her must-watch playlist from YouTube (e.g., https://www.youtube.com/playlist?list=PLxxxxxx)',
+    }),
+    defineField({
+      name: 'mustWatchPlaylistId',
+      title: 'Must-Watch Playlist ID (for embed)',
+      type: 'string',
+      description: 'Just the playlist ID from the URL (the part after "list="). Used to embed the playlist on the Videos section.',
+    }),
+    defineField({
       name: 'seoDefaults',
       title: 'SEO Defaults',
       type: 'object',

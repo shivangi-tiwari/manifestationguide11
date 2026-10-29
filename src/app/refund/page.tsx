@@ -43,6 +43,7 @@ export default function RefundPage() {
       tagline="Transform your reality"
       instagramHandle="manifestationcoach55"
       email="manifestationcoach55@gmail.com"
+      youtubeChannelId="ManifestationGuide11"
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-orange-900/50" />

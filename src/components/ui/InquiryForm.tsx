@@ -7,6 +7,7 @@ import { Input } from './Input'
 import { Textarea } from './Textarea'
 import { Checkbox } from './Checkbox'
 import { submitInquiry } from '@/app/actions/inquiry'
+import { clsx } from 'clsx'
 
 const inquirySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -130,13 +131,13 @@ function InquiryFormInner({
   if (submitStatus === 'success') {
     return (
       <div className="text-center py-12" role="status" aria-live="polite">
-        <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-accent/20 dark:bg-accent/30 flex items-center justify-center">
+          <svg className="w-8 h-8 text-accent-tertiary dark:text-accent-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Inquiry Submitted!</h3>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+        <h3 className="text-heading-xl font-display font-bold text-foreground mb-2">Inquiry Submitted!</h3>
+        <p className="text-muted max-w-md mx-auto">
           Thank you for reaching out. I&apos;ll get back to you within 24 hours. Please check your email for a playlist to review before our session.
         </p>
       </div>
@@ -178,7 +179,7 @@ function InquiryFormInner({
           autoComplete="tel"
         />
         <div className="w-full">
-          <label htmlFor="package" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <label htmlFor="package" className="block text-sm font-medium text-muted mb-1.5">
             Select Package *
           </label>
           <select
@@ -188,12 +189,12 @@ function InquiryFormInner({
             onChange={(e) => handleChange('package', e.target.value)}
             className={clsx(
               'w-full px-4 py-2.5 rounded-lg border transition-colors',
-              'bg-white dark:bg-gray-800',
-              'text-gray-900 dark:text-white',
-              'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent',
+              'bg-background dark:bg-space-cadet-950',
+              'text-foreground dark:text-background',
+              'focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent',
               errors.package
                 ? 'border-red-500 focus:ring-red-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                : 'border-border dark:border-space-cadet-700 hover:border-muted/50 dark:hover:border-space-cadet-600'
             )}
             required
             aria-invalid={errors.package ? 'true' : 'false'}
@@ -224,7 +225,7 @@ function InquiryFormInner({
         description={
           <>
             By submitting this form, you agree to our{' '}
-            <a href={termsUrl} className="text-purple-600 dark:text-purple-400 underline hover:text-purple-700">
+            <a href={termsUrl} className="text-accent-tertiary dark:text-accent-tertiary underline hover:text-accent-secondary">
               Terms and Conditions
             </a>
             {' '}and acknowledge that all payments are non-refundable.
@@ -258,14 +259,12 @@ function InquiryFormInner({
         {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
       </Button>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+      <p className="text-center text-sm text-muted/70 dark:text-muted/50">
         By submitting, you agree to receive a confirmation email with a playlist link to review before our session.
       </p>
     </form>
   )
 }
-
-import { clsx } from 'clsx'
 
 export function InquiryForm(props: InquiryFormProps) {
   return <InquiryFormInner {...props} />

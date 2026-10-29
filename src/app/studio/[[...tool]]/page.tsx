@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { studioConfig } from '@/cms/sanity.config'
 
 // Force dynamic rendering with no SSR - Studio requires real Sanity credentials
 const NextStudio = dynamic(
@@ -11,7 +12,6 @@ const NextStudio = dynamic(
 export default function StudioPage() {
   // Check if Sanity is configured (not using dummy values)
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
   const isConfigured = projectId && projectId !== 'dummy-project-id'
 
   if (!isConfigured) {
@@ -26,5 +26,5 @@ export default function StudioPage() {
     )
   }
 
-  return <NextStudio config={{ projectId, dataset }} />
+  return <NextStudio config={studioConfig} />
 }

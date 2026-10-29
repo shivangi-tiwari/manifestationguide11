@@ -28,6 +28,7 @@ export default async function FAQPage() {
       tagline={siteSettings?.tagline}
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
+      youtubeChannelId={siteSettings?.youtubeChannelId}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-orange-900/50" />

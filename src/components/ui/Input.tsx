@@ -16,7 +16,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <label htmlFor={inputId} className="block text-sm font-medium text-muted mb-1.5">
             {label}
           </label>
         )}
@@ -25,14 +25,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={clsx(
             'w-full px-4 py-2.5 rounded-lg border transition-colors',
-            'bg-white dark:bg-gray-800',
-            'text-gray-900 dark:text-white',
-            'placeholder:text-gray-400 dark:placeholder:text-gray-500',
-            'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent',
+            'bg-background dark:bg-space-cadet-950',
+            'text-foreground dark:text-background',
+            'placeholder:text-muted/50 dark:placeholder:text-muted/40',
+            'focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             error
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
+              : 'border-border dark:border-space-cadet-700 hover:border-muted/50 dark:hover:border-space-cadet-600',
             className
           )}
           aria-invalid={error ? 'true' : 'false'}
@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helperText && !error && (
-          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-muted/70 dark:text-muted/50">
             {helperText}
           </p>
         )}

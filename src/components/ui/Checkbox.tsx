@@ -21,23 +21,23 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             type="checkbox"
             id={checkboxId}
             className={clsx(
-              'mt-1 h-4 w-4 rounded border-gray-300 text-purple-600',
-              'focus:ring-2 focus:ring-purple-500 focus:ring-offset-2',
-              'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+              'mt-1 h-4 w-4 rounded border-muted text-accent',
+              'focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background dark:focus:ring-offset-space-cadet-950',
+              'dark:border-space-cadet-700 dark:bg-space-cadet-950',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               className
             )}
             {...props}
           />
           <div className="flex-1">
-            <label htmlFor={checkboxId} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+            <label htmlFor={checkboxId} className="text-sm text-muted cursor-pointer">
               {label}
             </label>
             {description && (
-              <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+              <p className="mt-0.5 text-sm text-muted/70 dark:text-muted/50">{description}</p>
             )}
             {error && (
-              <p className="mt-0.5 text-sm text-red-600 dark:text-red-400">{error}</p>
+              <p className="mt-0.5 text-sm text-red-500">{error}</p>
             )}
           </div>
         </div>

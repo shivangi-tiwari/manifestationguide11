@@ -36,23 +36,23 @@ export function SuccessStories({ headline = 'Success Stories', subheadline, stor
                 {story.image ? (
                   <img src={story.image} alt={story.name} className="w-12 h-12 rounded-full object-cover" />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">{story.name.charAt(0)}</span>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-tertiary to-accent-secondary flex items-center justify-center">
+                    <span className="text-accent-tertiary-foreground font-bold text-lg">{story.name.charAt(0)}</span>
                   </div>
                 )}
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{story.name}</p>
-                  {story.location && <p className="text-sm text-gray-500 dark:text-gray-400">{story.location}</p>}
+                  <p className="font-semibold text-foreground">{story.name}</p>
+                  {story.location && <p className="text-sm text-muted">{story.location}</p>}
                 </div>
               </div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{story.headline}</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">{story.headline}</h4>
               {story.story && story.story.length > 0 && (
-                <div className="prose dark:prose-invert max-w-none text-sm mb-4 flex-1">
+                <div className="prose max-w-none text-sm mb-4 flex-1">
                   <PortableText value={story.story} />
                 </div>
               )}
               {story.packageName && (
-                <span className="inline-block px-3 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full mt-auto">
+                <span className="inline-block px-3 py-1 text-xs font-medium bg-accent/20 dark:bg-accent/30 text-accent-tertiary dark:text-accent-tertiary rounded-full mt-auto">
                   {story.packageName}
                 </span>
               )}
@@ -62,7 +62,7 @@ export function SuccessStories({ headline = 'Success Stories', subheadline, stor
       </div>
       {stories.length > 3 && (
         <div className="text-center mt-10">
-          <a href={ctaHref} className="text-purple-600 dark:text-purple-400 font-semibold hover:underline">
+          <a href={ctaHref} className="text-accent-tertiary dark:text-accent-tertiary font-semibold hover:underline">
             {ctaText} ({stories.length} total)
           </a>
         </div>

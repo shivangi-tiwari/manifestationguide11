@@ -34,11 +34,11 @@ export function Packages({ headline = 'Coaching Packages', subheadline, packages
             key={pkg._id}
             variant={pkg.popular ? 'elevated' : 'outlined'}
             padding="lg"
-            className={clsx('relative flex flex-col', pkg.popular && 'border-purple-500/50 shadow-purple-500/10')}
+            className={clsx('relative flex flex-col', pkg.popular && 'border-accent-tertiary/50 shadow-accent-tertiary/10')}
           >
             {pkg.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="bg-gradient-to-r from-accent-tertiary to-accent-secondary text-accent-tertiary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                   Most Popular
                 </span>
               </div>
@@ -48,23 +48,23 @@ export function Packages({ headline = 'Coaching Packages', subheadline, packages
             </CardHeader>
             <CardContent className="flex-1">
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                <span className="text-4xl font-bold text-foreground">
                   ₹{pkg.price.toLocaleString('en-IN')}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-2">/ {pkg.duration}</span>
+                <span className="text-muted ml-2">/ {pkg.duration}</span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">{pkg.description}</p>
+              <p className="text-muted mb-6">{pkg.description}</p>
               <ul className="space-y-3 mb-6">
                 {pkg.features.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3 text-gray-700 dark:text-gray-300">
-                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <li key={i} className="flex items-start gap-3 text-muted">
+                    <svg className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <div className="text-sm text-muted mb-4">
                 {pkg.sessions} 1:1 Zoom sessions included
               </div>
             </CardContent>

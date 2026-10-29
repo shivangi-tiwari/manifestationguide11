@@ -9,6 +9,8 @@ export const queries = {
     socialLinks,
     youtubeChannelId,
     mandatoryPlaylistId,
+    mustWatchPlaylistUrl,
+    mustWatchPlaylistId,
     seoDefaults,
     footerText,
     disclaimerText

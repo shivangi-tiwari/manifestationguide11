@@ -35,14 +35,14 @@ export function Header({ siteName, instagramHandle }: { siteName: string; instag
       className={clsx(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-white/95 dark:bg-gray-950/95 backdrop-blur-sm shadow-sm border-b border-gray-100 dark:border-gray-800'
+          ? 'bg-background/95 backdrop-blur-sm shadow-sm border-b border-border'
           : 'bg-transparent'
       )}
     >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2" aria-label={`${siteName} - Home`}>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-xl font-display font-bold text-foreground">
               {siteName}
             </span>
           </Link>
@@ -55,13 +55,13 @@ export function Header({ siteName, instagramHandle }: { siteName: string; instag
                 className={clsx(
                   'text-sm font-medium transition-colors relative',
                   pathname === link.href || pathname.startsWith(link.href + '/')
-                    ? 'text-purple-600 dark:text-purple-400'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
+                    ? 'text-accent-tertiary dark:text-accent-tertiary'
+                    : 'text-muted dark:text-muted/80 hover:text-foreground dark:hover:text-foreground'
                 )}
               >
                 {link.label}
                 {pathname === link.href || pathname.startsWith(link.href + '/') && (
-                  <span className="absolute bottom-[-6px] left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 to-pink-600" />
+                  <span className="absolute bottom-[-6px] left-0 right-0 h-0.5 bg-accent-tertiary dark:bg-accent-tertiary" />
                 )}
               </Link>
             ))}
@@ -77,7 +77,7 @@ export function Header({ siteName, instagramHandle }: { siteName: string; instag
           </div>
 
           <button
-            className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="md:hidden p-2 rounded-lg text-muted dark:text-muted/80 hover:bg-muted/10 dark:hover:bg-muted/20"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -103,14 +103,14 @@ export function Header({ siteName, instagramHandle }: { siteName: string; instag
                 className={clsx(
                   'block px-2 py-2 rounded-lg text-base font-medium transition-colors',
                   pathname === link.href || pathname.startsWith(link.href + '/')
-                    ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'bg-accent/20 dark:bg-accent/30 text-accent-tertiary dark:text-accent-tertiary'
+                    : 'text-muted dark:text-muted/80 hover:bg-muted/10 dark:hover:bg-muted/20'
                 )}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-4">
+            <div className="pt-4 border-t border-border flex flex-col gap-4">
               {instagramHandle && (
                 <InstagramButton handle={instagramHandle} size="md" variant="default" className="w-full justify-center" />
               )}

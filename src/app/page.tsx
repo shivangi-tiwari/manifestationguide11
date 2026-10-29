@@ -73,6 +73,7 @@ export default async function HomePage() {
       tagline={siteSettings?.tagline}
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
+      youtubeChannelId={siteSettings?.youtubeChannelId}
     >
       <Hero
         headline={heroTitle}

@@ -37,17 +37,18 @@ export default async function VideosPage() {
       tagline={siteSettings?.tagline}
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
+      youtubeChannelId={siteSettings?.youtubeChannelId}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-orange-900/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-space-cadet-900/80 via-warm-brown-700/60 to-deep-burgundy-700/80" />
         <div className="relative z-10 max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">Free Videos & Tutorials</h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
+          <h1 className="text-display-xl font-display font-bold text-background tracking-tight mb-6">Free Videos & Tutorials</h1>
+          <p className="text-body-lg md:text-heading-md text-background/90 max-w-2xl mx-auto">
             Learn manifestation techniques, watch guided meditations, and get inspired by real success stories. Subscribe for weekly updates.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4">
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
-              <a href={`https://youtube.com/@${siteSettings?.youtubeChannelId || 'manifestationcoach55'}`} target="_blank" rel="noopener noreferrer">
+            <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
+              <a href={`https://youtube.com/@${siteSettings?.youtubeChannelId || 'ManifestationGuide11'}`} target="_blank" rel="noopener noreferrer">
                 Subscribe on YouTube
               </a>
             </Button>
@@ -59,7 +60,7 @@ export default async function VideosPage() {
         {Object.entries(categorized).map(([category, categoryVideos]) => (
           <div key={category} className="mb-16">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{category}</h2>
+              <h2 className="text-heading-xl font-display font-bold text-foreground">{category}</h2>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {categoryVideos.map((video) => (
@@ -68,11 +69,11 @@ export default async function VideosPage() {
                     <YouTubeEmbed videoId={video.youtubeId} title={video.title} lazy />
                   </div>
                   <CardContent className="flex-1 flex flex-col p-6">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">{video.title}</h3>
+                    <h3 className="font-semibold text-foreground mb-2 line-clamp-2">{video.title}</h3>
                     {video.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-1 line-clamp-3">{video.description}</p>
+                      <p className="text-sm text-muted mb-4 flex-1 line-clamp-3">{video.description}</p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="flex items-center gap-2 text-xs text-muted mb-4">
                       <time dateTime={video.publishedAt}>
                         {new Date(video.publishedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </time>

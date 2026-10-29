@@ -53,6 +53,9 @@ export interface SiteSettings extends SanityDocument {
     linkedin?: string
   }
   youtubeChannelId?: string
+  mandatoryPlaylistId?: string
+  mustWatchPlaylistUrl?: string
+  mustWatchPlaylistId?: string
   seoDefaults: {
     title: string
     description: string

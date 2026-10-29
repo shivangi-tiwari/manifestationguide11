@@ -1,6 +1,6 @@
 'use client'
 
-import { Header } from './Header'
+import { Navbar } from './Navbar'
 import { Footer } from '@/components/sections/Footer'
 import { clsx } from 'clsx'
 
@@ -10,6 +10,7 @@ interface MainLayoutProps {
   tagline?: string
   instagramHandle?: string
   email?: string
+  youtubeChannelId?: string
 }
 
 export function MainLayout({
@@ -18,11 +19,12 @@ export function MainLayout({
   tagline,
   instagramHandle,
   email,
+  youtubeChannelId,
 }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header siteName={siteName} instagramHandle={instagramHandle} />
-      <main className="flex-1 pt-16">
+      <Navbar siteName={siteName} instagramHandle={instagramHandle} />
+      <main id="main-content" className="flex-1 pt-16">
         {children}
       </main>
       <Footer
@@ -30,6 +32,7 @@ export function MainLayout({
         tagline={tagline}
         instagramHandle={instagramHandle}
         email={email}
+        youtubeChannelId={youtubeChannelId}
       />
     </div>
   )
