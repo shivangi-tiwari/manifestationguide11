@@ -35,14 +35,14 @@ export interface SiteSettings extends SanityDocument {
   _type: 'siteSettings'
   title: string
   tagline: string
-  hero: {
-    title: string
-    subtitle: string
-    videoId?: string
-    videoTitle?: string
-    ctaText: string
+  hero?: {
+    heading?: string
+    subheading?: string
+    ctaText?: string
+    ctaLink?: string
   }
-  aboutSummary: (PortableTextBlock | SanityImageBlock)[]
+  aboutSummary?: string
+  aboutSubtitle?: string
   contactEmail: string
   whatsappNumber?: string
   instagramHandle?: string
@@ -56,6 +56,8 @@ export interface SiteSettings extends SanityDocument {
   mandatoryPlaylistId?: string
   mustWatchPlaylistUrl?: string
   mustWatchPlaylistId?: string
+  contactIntro?: string
+  storiesSubtitle?: string
   seoDefaults: {
     title: string
     description: string
@@ -63,6 +65,16 @@ export interface SiteSettings extends SanityDocument {
   }
   footerText: string
   disclaimerText: string
+  policies?: {
+    termsConditions?: PortableTextBlock[]
+  }
+  sectionImages?: {
+    hero?: SanityImageBlock
+    about?: SanityImageBlock
+    videos?: SanityImageBlock
+    stories?: SanityImageBlock
+    contact?: SanityImageBlock
+  }
 }
 
 export interface Package extends SanityDocument {
@@ -100,7 +112,7 @@ export interface SuccessStory extends SanityDocument {
   clientName: string
   photo?: unknown // Sanity image
   headline: string
-  story: unknown // Portable Text
+  story: PortableTextBlock[]
   youtubeVideoId?: string
   date: string
   location?: string

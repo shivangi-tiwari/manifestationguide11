@@ -2,70 +2,92 @@ import { Metadata } from 'next'
 import { sanityFetch } from '@/lib/sanity/client'
 import { queries } from '@/lib/sanity/queries'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { Hero } from '@/components/sections/Hero'
-import { About } from '@/components/sections/About'
-import { FeaturedVideos } from '@/components/sections/FeaturedVideos'
-import { Packages } from '@/components/sections/Packages'
-import { SuccessStories } from '@/components/sections/SuccessStories'
-import { FAQ } from '@/components/sections/FAQ'
-import { Contact } from '@/components/sections/Contact'
-import type { SiteSettings, Package, Video, SuccessStory, FAQ as FAQType, SanityImageBlock } from '@/types'
+import { HeroSection } from '@/components/sections/HeroSection'
+import { AboutSection } from '@/components/sections/AboutSection'
+import { VideosSection } from '@/components/sections/VideosSection'
+import { StoriesSection } from '@/components/sections/StoriesSection'
+import { ContactSection } from '@/components/sections/ContactSection'
+import { fetchRecentSuccessStoryVideos } from '@/lib/youtube'
+import type { YouTubeSuccessStoryVideo } from '@/lib/youtube'
+import type { SiteSettings, Package, Video, SuccessStory, FAQ as FAQType } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'Home',
+  title: {
+    default: 'Manifestation Coach - Transform Your Reality',
+    template: '%s | Manifestation Coach',
+  },
   description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
+  keywords: ['manifestation', 'coaching', 'law of attraction', 'mindset', 'personal development', 'spirituality'],
+  authors: [{ name: 'Manifestation Coach' }],
+  creator: 'Manifestation Coach',
+  publisher: 'Manifestation Coach',
+  robots: 'index, follow',
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://manifestationcoach.in',
+    siteName: 'Manifestation Coach',
+    title: 'Manifestation Coach - Transform Your Reality',
+    description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
+    images: [
+      {
+        url: '/og-default.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Manifestation Coach',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Manifestation Coach - Transform Your Reality',
+    description: 'Manifest your dream life with proven manifestation techniques.',
+    images: ['/og-default.jpg'],
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
 }
 
 async function getHomeData() {
   const [siteSettings, packages, videos, stories, faqs] = await Promise.all([
     sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', 'home'] }),
-    sanityFetch<Package[]>({ query: queries.featuredPackages, tags: ['sanity', 'home'] }),
-    sanityFetch<Video[]>({ query: queries.featuredVideos, tags: ['sanity', 'home'] }),
-    sanityFetch<SuccessStory[]>({ query: queries.featuredSuccessStories, tags: ['sanity', 'home'] }),
+    sanityFetch<Package[]>({ query: queries.packages, tags: ['sanity', 'home'] }),
+    sanityFetch<Video[]>({ query: queries.videos, tags: ['sanity', 'home'] }),
+    sanityFetch<SuccessStory[]>({ query: queries.successStories, tags: ['sanity', 'home'] }),
     sanityFetch<FAQType[]>({ query: queries.faqs, tags: ['sanity', 'home'] }),
   ])
 
-  return { siteSettings, packages, videos, stories, faqs }
+  let latestSuccessVideos: YouTubeSuccessStoryVideo[] = []
+  let youtubeFeedError = false
+  const channelId = siteSettings?.youtubeChannelId?.trim()
+
+  if (channelId) {
+    try {
+      latestSuccessVideos = await fetchRecentSuccessStoryVideos(channelId)
+    } catch (error) {
+      console.error('Failed to load recent YouTube success story videos.', error)
+      youtubeFeedError = true
+    }
+  } else {
+    console.error('Cannot load YouTube success story videos: the channel ID is missing from Site Settings.')
+    youtubeFeedError = true
+  }
+
+  return { siteSettings, packages, videos, stories, faqs, latestSuccessVideos, youtubeFeedError }
 }
 
 export default async function HomePage() {
-  const { siteSettings, packages, videos, stories, faqs } = await getHomeData()
+  const { siteSettings, packages, videos, stories, faqs, latestSuccessVideos, youtubeFeedError } = await getHomeData()
 
-  // Transform packages to match Packages component's expected shape
-  const displayPackages = (packages || []).map((pkg) => ({
-    _id: pkg._id,
-    name: pkg.title,
-    description: pkg.shortDescription,
-    price: pkg.price,
-    duration: pkg.duration || 'Monthly',
-    sessions: pkg.sessions || 4,
-    features: pkg.fullDescription ? ['Personalized guidance', 'Weekly check-ins', 'Resource library'] : [],
-    popular: pkg.featured,
-    ctaText: 'Select Package',
-  }))
-
-  // Transform stories to match SuccessStories component's expected shape
-  const displayStories = (stories || []).map((story) => ({
-    _id: story._id,
-    name: story.clientName,
-    location: undefined,
-    headline: story.headline,
-    story: (story.story as any[]) || [],
-    image: story.photo as string | undefined,
-    rating: undefined,
-    packageName: undefined,
-  }))
-
-  const heroVideoId = siteSettings?.hero?.videoId
-  const heroTitle = siteSettings?.hero?.title || 'Manifest Your Dream Life'
-  const heroSubtitle = siteSettings?.hero?.subtitle || 'Proven manifestation techniques to transform your reality. 1:1 coaching, guided programs, and a supportive community.'
-
-  // Transform packages for Contact component
+  // Transform packages for ContactSection (minimal shape)
   const contactPackages = (packages || []).map((pkg) => ({
     _id: pkg._id,
-    name: pkg.title,
+    title: pkg.title,
     price: pkg.price,
   }))
+
+  const sectionImages = siteSettings?.sectionImages
 
   return (
     <MainLayout
@@ -74,58 +96,43 @@ export default async function HomePage() {
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
       youtubeChannelId={siteSettings?.youtubeChannelId}
+      mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
+      footerText={siteSettings?.footerText}
+      disclaimerText={siteSettings?.disclaimerText}
     >
-      <Hero
-        headline={heroTitle}
-        subheadline={heroSubtitle}
-        videoId={heroVideoId}
-        videoTitle={siteSettings?.hero?.videoTitle}
-        ctaText="Start Your Journey"
-        ctaHref="/contact"
-        secondaryCtaText="Watch Free Videos"
-        secondaryCtaHref="/videos"
+      <HeroSection
+        siteName={siteSettings?.title || 'Manifestation Coach'}
+        tagline={siteSettings?.tagline}
+        hero={siteSettings?.hero}
+        heroImage={sectionImages?.hero}
       />
-
-      <About
-        headline="About Your Coach"
-        subheadline="Meet the guide behind your transformation"
-        content={siteSettings?.aboutSummary || []}
+      <AboutSection
+        aboutSummary={siteSettings?.aboutSummary}
+        aboutSubtitle={siteSettings?.aboutSubtitle}
         instagramHandle={siteSettings?.instagramHandle}
-        image={(siteSettings?.aboutSummary?.[0] as SanityImageBlock)?.asset?._ref ? undefined : '/coach-placeholder.jpg'}
+        aboutImage={sectionImages?.about}
       />
-
-      <FeaturedVideos
-        headline="Latest Insights"
-        subheadline="Free manifestation guidance on YouTube"
+      <VideosSection
         videos={videos || []}
+        mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
+        mustWatchPlaylistId={siteSettings?.mustWatchPlaylistId}
+        youtubeChannelId={siteSettings?.youtubeChannelId}
+        videosImage={sectionImages?.videos}
       />
-
-      <Packages
-        headline="Coaching Packages"
-        subheadline="Choose the path that fits your journey"
-        packages={displayPackages}
+      <StoriesSection
+        stories={stories || []}
+        latestVideos={latestSuccessVideos}
+        youtubeFeedError={youtubeFeedError}
+        storiesSubtitle={siteSettings?.storiesSubtitle}
+        storiesImage={sectionImages?.stories}
       />
-
-      <SuccessStories
-        headline="Real Transformations"
-        subheadline="Stories from people who manifested their dreams"
-        stories={displayStories}
-      />
-
-      <FAQ
-        headline="Frequently Asked Questions"
-        subheadline="Everything you need to know before starting"
-        faqs={faqs || []}
-      />
-
-      <Contact
-        headline="Ready to Begin?"
-        subheadline="Submit an inquiry and I'll personally review it within 24 hours"
-        content={siteSettings?.contactEmail ? [{ _type: 'block', children: [{ _type: 'span', text: `Questions? Email me at ${siteSettings.contactEmail}` }] }] : []}
+      <ContactSection
         packages={contactPackages}
+        faqs={faqs || []}
         turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
         instagramHandle={siteSettings?.instagramHandle}
         email={siteSettings?.contactEmail}
+        contactIntro={siteSettings?.contactIntro}
       />
     </MainLayout>
   )

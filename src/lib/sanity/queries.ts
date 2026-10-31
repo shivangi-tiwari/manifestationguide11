@@ -4,6 +4,7 @@ export const queries = {
     tagline,
     hero,
     aboutSummary,
+    aboutSubtitle,
     contactEmail,
     instagramHandle,
     socialLinks,
@@ -11,9 +12,13 @@ export const queries = {
     mandatoryPlaylistId,
     mustWatchPlaylistUrl,
     mustWatchPlaylistId,
+    contactIntro,
+    storiesSubtitle,
     seoDefaults,
     footerText,
-    disclaimerText
+    disclaimerText,
+    policies { termsConditions },
+    sectionImages
   }`,
 
   pages: `*[_type == "page" && slug.current != "home"] | order(title asc) {

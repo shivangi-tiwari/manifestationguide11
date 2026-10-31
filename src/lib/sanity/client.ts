@@ -24,7 +24,22 @@ export async function sanityFetch<T>({
     // This allows the build to complete without real Sanity credentials
     return [] as T
   }
-  return sanityClient.fetch<T>(query, params, { next: { tags } })
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await sanityClient.fetch<T>(query, params, { next: { tags, revalidate: 60 } })
+    } catch (error) {
+      const isNetworkFailure = error instanceof TypeError && error.message === 'fetch failed'
+      if (!isNetworkFailure || attempt === 3) {
+        console.error(`Sanity query failed${isNetworkFailure ? ' after 3 network attempts' : ''}.`, error)
+        throw error
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, attempt * 500))
+    }
+  }
+
+  throw new Error('Sanity query retry loop exited unexpectedly.')
 }
 
 export { sanityClient }

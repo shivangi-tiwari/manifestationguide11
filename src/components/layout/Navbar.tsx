@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 import { Button } from '@/components/ui/Button'
 import { InstagramButton } from '@/components/ui/InstagramButton'
@@ -22,6 +23,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ siteName, instagramHandle }: NavbarProps) {
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState<SectionId>('home')
@@ -71,6 +74,11 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
 
   // Handle smooth scroll on link click
   const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!isHomePage) {
+      setIsMobileMenuOpen(false)
+      return
+    }
+
     e.preventDefault()
     const targetId = href.startsWith('#') ? href.slice(1) : href
     const targetElement = document.getElementById(targetId)
@@ -90,7 +98,7 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
       history.replaceState(null, '', `#${targetId}`)
       setActiveSection(targetId as SectionId)
     }
-  }, [])
+  }, [isHomePage])
 
   // Handle initial hash on load
   useEffect(() => {
@@ -127,8 +135,8 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
       className={clsx(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-cream/95 backdrop-blur-sm shadow-sm border-b border-border'
-          : 'bg-transparent'
+          ? 'bg-olive/95 backdrop-blur-sm shadow-sm border-b border-cream/20'
+          : 'bg-olive'
       )}
       role="banner"
     >
@@ -137,11 +145,11 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 flex-shrink-0"
+            className="flex min-h-[44px] items-center gap-2 flex-shrink-0"
             aria-label={`${siteName} - Home`}
             onClick={(e) => handleNavClick(e as React.MouseEvent<HTMLAnchorElement>, '#home')}
           >
-            <span className="text-xl font-display font-bold text-foreground">
+            <span className="text-xl font-display font-bold text-cream">
               {siteName}
             </span>
           </Link>
@@ -151,12 +159,12 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
             {navSections.map((section) => (
               <Link
                 key={section.id}
-                href={`#${section.id}`}
+                href={isHomePage ? `#${section.id}` : `/#${section.id}`}
                 className={clsx(
-                  'text-sm font-medium transition-colors relative',
+                  'inline-flex min-h-[44px] items-center text-sm font-medium transition-colors relative',
                   activeSection === section.id
-                    ? 'text-brown aria-current'
-                    : 'text-muted hover:text-foreground'
+                    ? 'text-cream aria-current'
+                    : 'text-cream/85 hover:text-cream'
                 )}
                 aria-current={activeSection === section.id ? 'location' : undefined}
                 onClick={(e) => handleNavClick(e, `#${section.id}`)}
@@ -164,7 +172,7 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
                 {section.label}
                 {activeSection === section.id && (
                   <span
-                    className="absolute bottom-[-8px] left-0 right-0 h-0.5 bg-brown"
+                    className="absolute bottom-[-8px] left-0 right-0 h-0.5 bg-cream"
                     aria-hidden="true"
                   />
                 )}
@@ -176,14 +184,14 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
                 <InstagramButton handle={instagramHandle} label="" size="sm" variant="default" className="w-auto" />
               )}
               <Button asChild size="sm" className="hidden sm:inline-flex">
-                <a href="#contact" onClick={(e) => handleNavClick(e, '#contact')}>Book a session</a>
+                <a href={isHomePage ? '#contact' : '/#contact'} onClick={(e) => handleNavClick(e, '#contact')}>Book a session</a>
               </Button>
             </div>
           </div>
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden p-2 rounded-lg text-muted hover:bg-sage transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="md:hidden p-2 rounded-lg text-cream hover:bg-cream/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
@@ -215,12 +223,12 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
             {navSections.map((section) => (
               <Link
                 key={section.id}
-                href={`#${section.id}`}
+                href={isHomePage ? `#${section.id}` : `/#${section.id}`}
                 className={clsx(
                   'block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[44px] flex items-center',
                   activeSection === section.id
-                    ? 'bg-sage/50 text-brown'
-                    : 'text-muted hover:bg-sage/30 hover:text-foreground'
+                    ? 'bg-cream/15 text-cream'
+                    : 'text-cream/85 hover:bg-cream/10 hover:text-cream'
                 )}
                 aria-current={activeSection === section.id ? 'location' : undefined}
                 onClick={(e) => handleNavClick(e, `#${section.id}`)}
@@ -228,12 +236,12 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
                 {section.label}
               </Link>
             ))}
-            <div className="pt-4 border-t border-border flex flex-col gap-3">
+            <div className="pt-4 border-t border-cream/20 flex flex-col gap-3">
               {instagramHandle && (
                 <InstagramButton handle={instagramHandle} size="md" variant="default" className="w-full justify-center min-h-[44px]" />
               )}
               <Button asChild className="w-full min-h-[44px]" size="md">
-                <a href="#contact" onClick={(e) => handleNavClick(e, '#contact')}>Book a session</a>
+                <a href={isHomePage ? '#contact' : '/#contact'} onClick={(e) => handleNavClick(e, '#contact')}>Book a session</a>
               </Button>
             </div>
           </div>

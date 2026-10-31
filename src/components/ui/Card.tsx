@@ -26,7 +26,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={clsx('rounded-card-lg', variants[variant], paddings[padding], className)}
+        className={clsx(
+          'rounded-card-lg transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-[3px] hover:shadow-card-hover motion-reduce:transition-none motion-reduce:hover:translate-y-0',
+          variants[variant],
+          paddings[padding],
+          className
+        )}
         {...props}
       >
         {children}

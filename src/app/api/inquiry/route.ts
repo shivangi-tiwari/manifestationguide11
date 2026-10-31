@@ -7,7 +7,7 @@ const inquirySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   phone: z.string().min(10, 'Please enter a valid phone number').optional().or(z.literal('')),
-  package: z.string().min(1, 'Please select a package'),
+  package: z.string().optional().or(z.literal('')),
   message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message too long'),
   terms: z.boolean().refine((val) => val === true, 'You must accept the terms and conditions'),
   turnstileToken: z.string().min(1, 'Please complete the verification'),
@@ -68,7 +68,7 @@ async function sendVisitorAutoReply(data: InquiryData, playlistUrl: string) {
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #7c3aed;">Thanks for your inquiry, ${data.name}!</h2>
-        <p>I've received your message and will get back to you within 24 hours.</p>
+        <p>I've received your message. Thank you for getting in touch.</p>
 
         <div style="background: linear-gradient(135deg, #7c3aed, #ec4899); padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center;">
           <p style="color: white; margin: 0 0 16px; font-size: 16px;">
@@ -123,19 +123,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Get package name for emails
-    const packageDoc = await sanityWriteClient.fetch(
-      `*[_type == "package" && _id == $id][0]{title}`,
-      { id: data.package }
-    )
-    const packageName = packageDoc?.title || 'Unknown Package'
+    const packageDoc = data.package
+      ? await sanityWriteClient.fetch(
+          `*[_type == "package" && _id == $id][0]{title}`,
+          { id: data.package }
+        )
+      : null
+    const packageName = packageDoc?.title || 'General inquiry'
 
     // Store in Sanity
     await sanityWriteClient.create({
       _type: 'inquiry',
       name: data.name,
       email: data.email,
-      phone: data.phone || '',
-      package: { _type: 'reference', _ref: data.package },
+      ...(data.phone ? { phone: data.phone } : {}),
+      ...(data.package ? { package: { _type: 'reference', _ref: data.package } } : {}),
       message: data.message,
       termsAccepted: true,
       status: 'new',

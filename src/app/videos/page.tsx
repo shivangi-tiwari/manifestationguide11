@@ -38,6 +38,7 @@ export default async function VideosPage() {
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
       youtubeChannelId={siteSettings?.youtubeChannelId}
+      mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-space-cadet-900/80 via-warm-brown-700/60 to-deep-burgundy-700/80" />

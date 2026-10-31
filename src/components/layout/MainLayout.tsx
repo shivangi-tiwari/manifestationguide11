@@ -11,6 +11,9 @@ interface MainLayoutProps {
   instagramHandle?: string
   email?: string
   youtubeChannelId?: string
+  mustWatchPlaylistUrl?: string
+  footerText?: string
+  disclaimerText?: string
 }
 
 export function MainLayout({
@@ -20,6 +23,9 @@ export function MainLayout({
   instagramHandle,
   email,
   youtubeChannelId,
+  mustWatchPlaylistUrl,
+  footerText,
+  disclaimerText,
 }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -33,6 +39,9 @@ export function MainLayout({
         instagramHandle={instagramHandle}
         email={email}
         youtubeChannelId={youtubeChannelId}
+        mustWatchPlaylistUrl={mustWatchPlaylistUrl}
+        copyrightText={footerText}
+        disclaimerText={disclaimerText}
       />
     </div>
   )

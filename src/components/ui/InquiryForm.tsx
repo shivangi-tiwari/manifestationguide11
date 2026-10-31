@@ -7,13 +7,10 @@ import { Input } from './Input'
 import { Textarea } from './Textarea'
 import { Checkbox } from './Checkbox'
 import { submitInquiry } from '@/app/actions/inquiry'
-import { clsx } from 'clsx'
 
 const inquirySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number').optional().or(z.literal('')),
-  package: z.string().min(1, 'Please select a package'),
   message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message too long'),
   terms: z.boolean().refine((val) => val === true, 'You must accept the terms and conditions'),
   turnstileToken: z.string().min(1, 'Please complete the verification'),
@@ -23,14 +20,12 @@ const inquirySchema = z.object({
 type InquiryFormData = z.infer<typeof inquirySchema>
 
 interface InquiryFormProps {
-  packages: Array<{ _id: string; name: string; price: number }>
   turnstileSiteKey: string
   termsText?: string
   termsUrl?: string
 }
 
 function InquiryFormInner({
-  packages,
   turnstileSiteKey,
   termsText = 'I agree to the Terms and Conditions',
   termsUrl = '/terms',
@@ -38,8 +33,6 @@ function InquiryFormInner({
   const [formData, setFormData] = useState<Partial<InquiryFormData>>({
     name: '',
     email: '',
-    phone: '',
-    package: '',
     message: '',
     terms: false,
     turnstileToken: '',
@@ -101,8 +94,6 @@ function InquiryFormInner({
         setFormData({
           name: '',
           email: '',
-          phone: '',
-          package: '',
           message: '',
           terms: false,
           turnstileToken: '',
@@ -136,9 +127,9 @@ function InquiryFormInner({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h3 className="text-heading-xl font-display font-bold text-foreground mb-2">Inquiry Submitted!</h3>
-        <p className="text-muted max-w-md mx-auto">
-          Thank you for reaching out. I&apos;ll get back to you within 24 hours. Please check your email for a playlist to review before our session.
+        <h3 className="text-heading-xl font-display font-bold text-cream mb-2">Inquiry Submitted!</h3>
+        <p className="text-cream max-w-md mx-auto">
+          Thank you for reaching out. Your inquiry has been submitted.
         </p>
       </div>
     )
@@ -148,6 +139,7 @@ function InquiryFormInner({
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       <div className="grid gap-6 md:grid-cols-2">
         <Input
+          tone="olive"
           label="Full Name *"
           placeholder="Your name"
           value={formData.name || ''}
@@ -157,6 +149,7 @@ function InquiryFormInner({
           autoComplete="name"
         />
         <Input
+          tone="olive"
           label="Email Address *"
           type="email"
           placeholder="you@example.com"
@@ -168,49 +161,8 @@ function InquiryFormInner({
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Input
-          label="Phone Number (optional)"
-          type="tel"
-          placeholder="+91 XXXXX XXXXX"
-          value={formData.phone || ''}
-          onChange={(e) => handleChange('phone', e.target.value)}
-          error={errors.phone}
-          autoComplete="tel"
-        />
-        <div className="w-full">
-          <label htmlFor="package" className="block text-sm font-medium text-muted mb-1.5">
-            Select Package *
-          </label>
-          <select
-            id="package"
-            name="package"
-            value={formData.package || ''}
-            onChange={(e) => handleChange('package', e.target.value)}
-            className={clsx(
-              'w-full px-4 py-2.5 rounded-lg border transition-colors',
-              'bg-background dark:bg-space-cadet-950',
-              'text-foreground dark:text-background',
-              'focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent',
-              errors.package
-                ? 'border-red-500 focus:ring-red-500'
-                : 'border-border dark:border-space-cadet-700 hover:border-muted/50 dark:hover:border-space-cadet-600'
-            )}
-            required
-            aria-invalid={errors.package ? 'true' : 'false'}
-          >
-            <option value="">Choose a package...</option>
-            {packages.map((pkg) => (
-              <option key={pkg._id} value={pkg._id}>
-                {pkg.name} - ₹{pkg.price.toLocaleString('en-IN')}
-              </option>
-            ))}
-          </select>
-          {errors.package && <p className="mt-1.5 text-sm text-red-500" role="alert">{errors.package}</p>}
-        </div>
-      </div>
-
       <Textarea
+        tone="olive"
         label="Your Message *"
         placeholder="Tell me about your goals, challenges, and what you hope to achieve..."
         value={formData.message || ''}
@@ -221,11 +173,12 @@ function InquiryFormInner({
       />
 
       <Checkbox
+        tone="olive"
         label={termsText}
         description={
           <>
             By submitting this form, you agree to our{' '}
-            <a href={termsUrl} className="text-accent-tertiary dark:text-accent-tertiary underline hover:text-accent-secondary">
+            <a href={termsUrl} className="inline-flex min-h-[44px] items-center py-2 text-cream underline hover:text-cream">
               Terms and Conditions
             </a>
             {' '}and acknowledge that all payments are non-refundable.
@@ -259,8 +212,8 @@ function InquiryFormInner({
         {isSubmitting ? 'Submitting...' : 'Submit Inquiry'}
       </Button>
 
-      <p className="text-center text-sm text-muted/70 dark:text-muted/50">
-        By submitting, you agree to receive a confirmation email with a playlist link to review before our session.
+      <p className="text-center text-sm text-cream">
+        Your name and email will be used to respond to this inquiry.
       </p>
     </form>
   )

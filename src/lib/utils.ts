@@ -5,6 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function getContactEmail(email?: string) {
+  const value = email?.trim()
+  if (!value || /@example\.(com|org|net)$/i.test(value)) return undefined
+  return value
+}
+
 export function formatCurrency(amount: number, currency: 'INR' | 'USD' = 'INR') {
   return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
     style: 'currency',

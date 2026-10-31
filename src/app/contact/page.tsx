@@ -8,7 +8,7 @@ import type { SiteSettings, Package } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Contact & Inquiries',
-  description: 'Ready to start your manifestation journey? Submit an inquiry and I\'ll get back to you within 24 hours.',
+  description: 'Send an inquiry about coaching sessions.',
 }
 
 async function getContactData() {
@@ -36,20 +36,21 @@ export default async function ContactPage() {
       instagramHandle={siteSettings?.instagramHandle}
       email={siteSettings?.contactEmail}
       youtubeChannelId={siteSettings?.youtubeChannelId}
+      mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-orange-900/50" />
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">Start Your Transformation</h1>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
-            Submit an inquiry and I&apos;ll personally review it within 24 hours. No payment required upfront.
+            Send a message about coaching sessions.
           </p>
         </div>
       </Section>
 
       <Contact
         headline="Submit Your Inquiry"
-        subheadline="Tell me about your goals and I'll recommend the best path forward"
+        subheadline="Share your questions about coaching."
         packages={contactPackages}
         turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
         instagramHandle={siteSettings?.instagramHandle}

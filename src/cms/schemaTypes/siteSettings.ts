@@ -19,6 +19,7 @@ export const siteSettings = defineType({
       ],
     }),
     defineField({ name: 'aboutSummary', title: 'About Summary', type: 'text' }),
+    defineField({ name: 'aboutSubtitle', title: 'About Subtitle', type: 'string', description: 'Optional subtitle for the About section (e.g., "A note from your coach")' }),
     defineField({ name: 'contactEmail', title: 'Contact Email', type: 'string', validation: (r) => r.required() }),
     defineField({ name: 'instagramHandle', title: 'Instagram Handle', type: 'string' }),
     defineField({
@@ -44,6 +45,8 @@ export const siteSettings = defineType({
       type: 'string',
       description: 'Just the playlist ID from the URL (the part after "list="). Used to embed the playlist on the Videos section.',
     }),
+    defineField({ name: 'contactIntro', title: 'Contact Intro', type: 'string', description: 'Optional intro text for the Contact section' }),
+    defineField({ name: 'storiesSubtitle', title: 'Stories Subtitle', type: 'string', description: 'Optional subtitle for the Success Stories section' }),
     defineField({
       name: 'seoDefaults',
       title: 'SEO Defaults',
@@ -56,5 +59,31 @@ export const siteSettings = defineType({
     }),
     defineField({ name: 'footerText', title: 'Footer Text', type: 'string' }),
     defineField({ name: 'disclaimerText', title: 'Disclaimer Text', type: 'text' }),
+    defineField({
+      name: 'policies',
+      title: 'Terms & Conditions',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'termsConditions',
+          title: 'Terms & Conditions',
+          type: 'array',
+          of: [{ type: 'block' }],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'sectionImages',
+      title: 'Section Illustrations',
+      type: 'object',
+      fields: [
+        { name: 'hero', title: 'Hero Illustration', type: 'image', options: { hotspot: true } },
+        { name: 'about', title: 'About Illustration', type: 'image', options: { hotspot: true } },
+        { name: 'videos', title: 'Videos Illustration', type: 'image', options: { hotspot: true } },
+        { name: 'stories', title: 'Stories Illustration', type: 'image', options: { hotspot: true } },
+        { name: 'contact', title: 'Contact Illustration', type: 'image', options: { hotspot: true } },
+      ],
+      description: 'Upload custom illustrations for each section. Leave empty to use default doodles.',
+    }),
   ],
 })

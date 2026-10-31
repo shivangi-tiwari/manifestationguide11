@@ -1,8 +1,6 @@
-'use client'
-
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
-import { schemaTypes } from './schemaTypes'
+import { siteSettings } from './schemaTypes/siteSettings'
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'
@@ -15,10 +13,26 @@ export const studioConfig = defineConfig({
   projectId,
   dataset,
 
-  plugins: [structureTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            S.listItem()
+              .title('Site Settings')
+              .icon(() => '⚙️')
+              .child(
+                S.document()
+                  .schemaType('siteSettings')
+                  .documentId('siteSettings')
+              ),
+          ]),
+    }),
+  ],
 
   schema: {
-    types: schemaTypes,
+    types: [siteSettings],
   },
 })
 

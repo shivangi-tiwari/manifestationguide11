@@ -92,6 +92,40 @@
 }
 
 @layer utilities {
+  .reveal-on-scroll {
+    transition: opacity 600ms ease, transform 600ms ease;
+  }
+
+  .reveal-on-scroll.reveal-pending {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .reveal-on-scroll.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 40rem) {
+    .text-xs,
+    .text-sm,
+    .text-body-sm,
+    .text-caption {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-on-scroll,
+    .reveal-on-scroll.reveal-pending,
+    .reveal-on-scroll.reveal-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
   .text-balance {
     text-wrap: balance;
   }
