@@ -21,36 +21,13 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000'),
   title: {
-    default: 'Manifestation Coach - Transform Your Reality',
-    template: '%s | Manifestation Coach',
+    default: 'Manifestation Guide',
+    template: '%s | Manifestation Guide',
   },
-  description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
-  keywords: ['manifestation', 'coaching', 'law of attraction', 'mindset', 'personal development', 'spirituality'],
-  authors: [{ name: 'Manifestation Coach' }],
-  creator: 'Manifestation Coach',
-  publisher: 'Manifestation Coach',
   robots: 'index, follow',
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://manifestationcoach.in',
-    siteName: 'Manifestation Coach',
-    title: 'Manifestation Coach - Transform Your Reality',
-    description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
-    images: [
-      {
-        url: '/og-default.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Manifestation Coach',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Manifestation Coach - Transform Your Reality',
-    description: 'Manifest your dream life with proven manifestation techniques.',
-    images: ['/og-default.jpg'],
   },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,

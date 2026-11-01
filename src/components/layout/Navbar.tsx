@@ -30,12 +30,24 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
   const [activeSection, setActiveSection] = useState<SectionId>('home')
   const observerRef = useRef<IntersectionObserver | null>(null)
   const sectionRefs = useRef<Record<SectionId, HTMLDivElement | null>>({} as Record<SectionId, HTMLDivElement | null>)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
 
   // Scroll handler for navbar background
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia('(min-width: 768px)')
+    const closeMenuOnDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsMobileMenuOpen(false)
+    }
+
+    desktopQuery.addEventListener('change', closeMenuOnDesktop)
+    return () => desktopQuery.removeEventListener('change', closeMenuOnDesktop)
   }, [])
 
   // IntersectionObserver for scroll-spy
@@ -86,6 +98,9 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
     if (targetElement) {
       // Close mobile menu
       setIsMobileMenuOpen(false)
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        mobileMenuButtonRef.current?.focus()
+      }
 
       // Smooth scroll respecting prefers-reduced-motion
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -116,13 +131,43 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
     }
   }, [])
 
-  // Focus trap for mobile menu
   useEffect(() => {
     if (!isMobileMenuOpen) return
+
+    const menu = mobileMenuRef.current
+    if (!menu) return
+
+    const getFocusableItems = () =>
+      Array.from(
+        menu.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => element.offsetParent !== null)
+
+    getFocusableItems()[0]?.focus()
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsMobileMenuOpen(false)
+        mobileMenuButtonRef.current?.focus()
+        return
+      }
+
+      if (e.key !== 'Tab') return
+
+      const focusableItems = getFocusableItems()
+      const firstItem = focusableItems[0]
+      const lastItem = focusableItems[focusableItems.length - 1]
+
+      if (!firstItem || !lastItem) {
+        e.preventDefault()
+        mobileMenuButtonRef.current?.focus()
+      } else if (e.shiftKey && document.activeElement === firstItem) {
+        e.preventDefault()
+        lastItem.focus()
+      } else if (!e.shiftKey && document.activeElement === lastItem) {
+        e.preventDefault()
+        firstItem.focus()
       }
     }
 
@@ -191,6 +236,7 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
 
           {/* Mobile menu button */}
           <button
+            ref={mobileMenuButtonRef}
             className="md:hidden p-2 rounded-lg text-cream hover:bg-cream/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-expanded={isMobileMenuOpen}
@@ -211,11 +257,13 @@ export function Navbar({ siteName, instagramHandle }: NavbarProps) {
 
         {/* Mobile menu */}
         <div
+          ref={mobileMenuRef}
           id="mobile-menu"
           className={clsx(
             'md:hidden overflow-hidden transition-all duration-300',
             isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           )}
+          hidden={!isMobileMenuOpen}
           role="navigation"
           aria-label="Mobile menu"
         >

@@ -1,9 +1,10 @@
-import { MetadataRoute } from 'next'
-import { sanityFetch } from '@/lib/sanity/client'
-import { queries } from '@/lib/sanity/queries'
+import type { MetadataRoute } from 'next'
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://manifestationcoach.in'
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  const sitemap = configuredUrl
+    ? `${new URL(configuredUrl).origin}/sitemap.xml`
+    : undefined
 
   return {
     rules: {
@@ -11,6 +12,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       allow: '/',
       disallow: ['/studio/', '/api/', '/_next/', '/static/'],
     },
-    sitemap: `${baseUrl}/sitemap.xml`,
+    ...(sitemap ? { sitemap } : {}),
   }
 }

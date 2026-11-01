@@ -1,58 +1,42 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 import { sanityFetch } from '@/lib/sanity/client'
 import { queries } from '@/lib/sanity/queries'
-import type { Package, Video, SuccessStory } from '@/types'
 
 interface PageForSitemap {
-  slug: { current: string }
+  slug?: { current?: string }
+  _updatedAt?: string
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://manifestationcoach.in'
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
+  if (!configuredUrl) {
+    console.error('Cannot generate sitemap: NEXT_PUBLIC_SITE_URL is not configured.')
+    return []
+  }
 
-  const [pages, packages, videos, stories] = await Promise.all([
-    sanityFetch<PageForSitemap[]>({ query: queries.pages, tags: ['sanity'] }),
-    sanityFetch<Package[]>({ query: queries.packages, tags: ['sanity'] }),
-    sanityFetch<Video[]>({ query: queries.videos, tags: ['sanity'] }),
-    sanityFetch<SuccessStory[]>({ query: queries.successStories, tags: ['sanity'] }),
-  ])
+  const baseUrl = new URL(configuredUrl).origin
+  const pages = await sanityFetch<PageForSitemap[]>({
+    query: queries.pages,
+    tags: ['sanity'],
+  })
+  const now = new Date()
 
-  const staticRoutes = [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 1 },
-    { url: `${baseUrl}/packages`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
-    { url: `${baseUrl}/videos`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.8 },
-    { url: `${baseUrl}/success-stories`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
-    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.7 },
-    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.6 },
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: baseUrl, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+    { url: `${baseUrl}/terms`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  const pageRoutes = (pages || []).map((page) => ({
-    url: `${baseUrl}/${page.slug.current}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }))
+  const pageRoutes: MetadataRoute.Sitemap = (pages ?? []).flatMap((page) => {
+    const slug = page.slug?.current
+    if (!slug || slug === 'terms') return []
 
-  const packageRoutes = (packages || []).map((pkg) => ({
-    url: `${baseUrl}/packages/${pkg.slug.current}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }))
+    return [{
+      url: `${baseUrl}/${slug}`,
+      lastModified: page._updatedAt ? new Date(page._updatedAt) : now,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    }]
+  })
 
-  const videoRoutes = (videos || []).map((video) => ({
-    url: `${baseUrl}/videos/${video._id}`,
-    lastModified: new Date(video.publishedAt),
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }))
-
-  const storyRoutes = (stories || []).map((story) => ({
-    url: `${baseUrl}/success-stories/${story._id}`,
-    lastModified: new Date(story.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }))
-
-  return [...staticRoutes, ...pageRoutes, ...packageRoutes, ...videoRoutes, ...storyRoutes]
+  return [...staticRoutes, ...pageRoutes]
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 
 interface YouTubeEmbedProps {
   videoId: string
@@ -12,71 +12,40 @@ interface YouTubeEmbedProps {
 export function YouTubeEmbed({ videoId, title, lazy = true, className }: YouTubeEmbedProps) {
   const [isLoaded, setIsLoaded] = useState(!lazy)
   const [isPlaying, setIsPlaying] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!lazy) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsLoaded(true)
-            observer.disconnect()
-          }
-        })
-      },
-      { rootMargin: '200px' }
-    )
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [lazy])
 
   const handleClick = () => {
-    if (!isPlaying && iframeRef.current) {
-      setIsPlaying(true)
-      iframeRef.current.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`
-    }
+    setIsLoaded(true)
+    setIsPlaying(true)
   }
 
   if (!isLoaded) {
     return (
-      <div
-        ref={containerRef}
-        className={clsx('relative aspect-video rounded-xl bg-gray-100 dark:bg-gray-800 cursor-pointer overflow-hidden', className)}
+      <button
+        type="button"
+        className={clsx(
+          'relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-olive text-cream',
+          className
+        )}
         onClick={handleClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
         aria-label={`Play video: ${title || videoId}`}
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 md:w-10 md:h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-cream/15 shadow-lg md:h-24 md:w-24">
+          <svg className="ml-1 h-8 w-8 md:h-10 md:w-10" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </span>
         {title && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-            <p className="text-white text-sm font-medium truncate">{title}</p>
-          </div>
+          <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-left text-sm font-medium text-white">
+            {title}
+          </span>
         )}
-      </div>
+      </button>
     )
   }
 
   return (
-    <div ref={containerRef} className={clsx('relative aspect-video rounded-xl overflow-hidden', className)}>
+    <div className={clsx('relative aspect-video rounded-xl overflow-hidden', className)}>
       <iframe
-        ref={iframeRef}
         src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1${isPlaying ? '&autoplay=1' : ''}`}
         title={title || `YouTube video: ${videoId}`}
         frameBorder="0"

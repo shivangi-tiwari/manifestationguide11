@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { sanityFetch } from '@/lib/sanity/client'
 import { queries } from '@/lib/sanity/queries'
+import { urlFor } from '@/lib/sanity/image'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Section } from '@/components/ui/Section'
 import { PortableText } from '@/components/ui/PortableText'
@@ -28,13 +29,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const { page } = await getPageData(slug)
   if (!page) return { title: 'Page Not Found' }
+
+  const title = page.seo?.title?.trim() || page.title
+  const description = page.seo?.description?.trim() || undefined
+  const imageSource = page.seo?.ogImage
+  const imageUrl = imageSource?.asset?._ref
+    ? urlFor(imageSource)?.width(1200).height(630).fit('crop').url()
+    : undefined
+  const images = imageUrl
+    ? [{ url: imageUrl, width: 1200, height: 630, alt: title }]
+    : undefined
+
   return {
-    title: page.title,
-    description: page.seo?.description || page.title,
+    title,
+    description,
     openGraph: {
-      title: page.seo?.ogTitle || page.title,
-      description: page.seo?.description || page.title,
-      images: page.seo?.ogImage ? [{ url: page.seo.ogImage }] : [],
+      title: page.seo?.ogTitle?.trim() || title,
+      description,
+      images,
+    },
+    twitter: {
+      card: images ? 'summary_large_image' : 'summary',
+      title: page.seo?.ogTitle?.trim() || title,
+      description,
+      images,
     },
   }
 }

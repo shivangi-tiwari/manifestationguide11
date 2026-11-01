@@ -26,7 +26,7 @@ export interface Page extends SanityDocument {
     title?: string
     description?: string
     ogTitle?: string
-    ogImage?: string
+    ogImage?: SanityImageBlock
   }
 }
 
@@ -56,10 +56,10 @@ export interface SiteSettings extends SanityDocument {
   mustWatchPlaylistId?: string
   contactIntro?: string
   storiesSubtitle?: string
-  seoDefaults: {
-    title: string
-    description: string
-    ogImage?: string
+  seoDefaults?: {
+    title?: string
+    description?: string
+    ogImage?: SanityImageBlock
   }
   footerText?: string
   developerCredit?: string

@@ -23,6 +23,8 @@ export const queries = {
   }`,
 
   pages: `*[_type == "page" && slug.current != "home"] | order(title asc) {
+    _id,
+    _updatedAt,
     title,
     slug,
     body,
@@ -30,6 +32,8 @@ export const queries = {
   }`,
 
   pageBySlug: (slug: string) => `*[_type == "page" && slug.current == "${slug}"][0] {
+    _id,
+    _updatedAt,
     title,
     slug,
     body,

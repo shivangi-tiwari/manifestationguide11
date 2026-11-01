@@ -8,6 +8,26 @@ import { Checkbox } from './Checkbox'
 import { submitInquiry } from '@/app/actions/inquiry'
 import { inquirySchema, type InquiryFormData } from '@/lib/inquirySchema'
 
+interface TurnstileOptions {
+  sitekey: string
+  theme: 'light'
+  callback: (token: string) => void
+  'expired-callback': () => void
+  'error-callback': () => void
+}
+
+interface TurnstileApi {
+  render: (container: HTMLElement, options: TurnstileOptions) => string
+  remove: (widgetId: string) => void
+  reset: (widgetId: string) => void
+}
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi
+  }
+}
+
 interface InquiryFormProps {
   turnstileSiteKey: string
   termsText?: string
@@ -32,28 +52,34 @@ function InquiryFormInner({
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const turnstileContainerRef = useRef<HTMLDivElement>(null)
-  const widgetIdRef = useRef<number | null>(null)
+  const widgetIdRef = useRef<string | null>(null)
 
-  const validateField = useCallback((name: keyof InquiryFormData, value: any) => {
-    const fieldSchema = inquirySchema.shape[name]
-    if (fieldSchema) {
-      const result = fieldSchema.safeParse(value)
-      if (!result.success) {
-        setErrors((prev) => ({ ...prev, [name]: result.error.errors[0].message }))
-      } else {
-        setErrors((prev) => {
-          const next = { ...prev }
-          delete next[name]
-          return next
-        })
+  const validateField = useCallback(
+    <Key extends keyof InquiryFormData,>(name: Key, value: InquiryFormData[Key]) => {
+      const fieldSchema = inquirySchema.shape[name]
+      if (fieldSchema) {
+        const result = fieldSchema.safeParse(value)
+        if (!result.success) {
+          setErrors((prev) => ({ ...prev, [name]: result.error.errors[0].message }))
+        } else {
+          setErrors((prev) => {
+            const next = { ...prev }
+            delete next[name]
+            return next
+          })
+        }
       }
-    }
-  }, [])
+    },
+    []
+  )
 
-  const handleChange = useCallback((name: keyof InquiryFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    validateField(name, value)
-  }, [validateField])
+  const handleChange = useCallback(
+    <Key extends keyof InquiryFormData,>(name: Key, value: InquiryFormData[Key]) => {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+      validateField(name, value)
+    },
+    [validateField]
+  )
 
   const handleTurnstileVerify = useCallback((token: string) => {
     handleChange('turnstileToken', token)
@@ -67,25 +93,12 @@ function InquiryFormInner({
   useEffect(() => {
     if (!turnstileSiteKey || !turnstileContainerRef.current) return
 
-    const loadTurnstile = () => {
-      if (typeof window === 'undefined') return
-      if ((window as any).turnstile) {
-        renderWidget()
-      } else {
-        const script = document.createElement('script')
-        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-        script.async = true
-        script.defer = true
-        script.onload = renderWidget
-        document.head.appendChild(script)
-      }
-    }
+    let cancelled = false
 
     const renderWidget = () => {
-      if (!turnstileContainerRef.current || (window as any).turnstile === undefined) return
-      // Clear any existing widget
+      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return
       turnstileContainerRef.current.innerHTML = ''
-      widgetIdRef.current = (window as any).turnstile.render(turnstileContainerRef.current, {
+      widgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
         sitekey: turnstileSiteKey,
         theme: 'light',
         callback: handleTurnstileVerify,
@@ -94,13 +107,34 @@ function InquiryFormInner({
       })
     }
 
-    loadTurnstile()
+    const handleScriptError = () => {
+      console.error('Cloudflare Turnstile failed to load.')
+    }
+
+    if (window.turnstile) {
+      renderWidget()
+    } else {
+      let script = document.querySelector<HTMLScriptElement>(
+        'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+      )
+
+      if (!script) {
+        script = document.createElement('script')
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+      }
+
+      script.addEventListener('load', renderWidget, { once: true })
+      script.addEventListener('error', handleScriptError, { once: true })
+    }
 
     return () => {
-      if (widgetIdRef.current && (window as any).turnstile) {
-        try {
-          ;(window as any).turnstile.remove(widgetIdRef.current)
-        } catch {}
+      cancelled = true
+      if (widgetIdRef.current !== null && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current)
+        widgetIdRef.current = null
       }
     }
   }, [turnstileSiteKey, handleTurnstileVerify, handleTurnstileExpire])
@@ -145,10 +179,8 @@ function InquiryFormInner({
           honeypot: '',
         })
         // Reset Turnstile widget after successful submit
-        if (widgetIdRef.current && (window as any).turnstile) {
-          try {
-            ;(window as any).turnstile.reset(widgetIdRef.current)
-          } catch {}
+        if (widgetIdRef.current !== null && window.turnstile) {
+          window.turnstile.reset(widgetIdRef.current)
         }
       } else {
         setSubmitStatus('error')

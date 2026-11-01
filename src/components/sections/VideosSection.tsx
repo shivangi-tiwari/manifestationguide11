@@ -48,7 +48,7 @@ function MustWatchCallout({
           Watching these is a must to get a gist of what you need to work on, whether individually or with me.
         </p>
         {(playlistId || playlistUrl) && (
-          <div className="mx-auto mb-8 w-full max-w-3xl">
+          <div className="mx-auto w-full max-w-3xl">
             {playlistId && (
               previewLoaded ? (
                 <iframe
@@ -76,20 +76,10 @@ function MustWatchCallout({
                 </button>
               )
             )}
-            {playlistUrl && (
-              <a
-                href={playlistUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full border border-cream/50 px-6 py-2 font-semibold text-cream underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-butter"
-              >
-                Open playlist
-              </a>
-            )}
           </div>
         )}
         {displayPlaylists.length > 0 && (
-          <div className="mt-8 text-left">
+          <div className="text-left">
             <ul
               className="max-h-[24rem] space-y-3 overflow-y-auto overscroll-contain pr-2"
               aria-label="YouTube playlists"
@@ -177,7 +167,7 @@ export function VideosSection({ playlists, playlistsError, mustWatchPlaylistUrl,
             sanityImage={videosImage}
             doodleName="videos"
             alt="Videos illustration"
-            className="max-w-[260px] mx-auto lg:max-w-md lg:mx-0"
+            className="max-w-[160px] mx-auto sm:max-w-[180px] md:max-w-[200px] lg:max-w-md lg:mx-0"
           />
         </div>
         <MustWatchCallout

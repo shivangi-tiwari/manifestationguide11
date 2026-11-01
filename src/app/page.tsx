@@ -1,6 +1,7 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { sanityFetch } from '@/lib/sanity/client'
 import { queries } from '@/lib/sanity/queries'
+import { urlFor } from '@/lib/sanity/image'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { AboutSection } from '@/components/sections/AboutSection'
@@ -11,42 +12,46 @@ import { fetchChannelPlaylists } from '@/lib/youtube'
 import type { YouTubePlaylist } from '@/lib/youtube'
 import type { SiteSettings, Package, Video, SuccessStory, FAQ as FAQType } from '@/types'
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Manifestation Coach - Transform Your Reality',
-    template: '%s | Manifestation Coach',
-  },
-  description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
-  keywords: ['manifestation', 'coaching', 'law of attraction', 'mindset', 'personal development', 'spirituality'],
-  authors: [{ name: 'Manifestation Coach' }],
-  creator: 'Manifestation Coach',
-  publisher: 'Manifestation Coach',
-  robots: 'index, follow',
-  openGraph: {
-    type: 'website',
-    locale: 'en_IN',
-    url: 'https://manifestationcoach.in',
-    siteName: 'Manifestation Coach',
-    title: 'Manifestation Coach - Transform Your Reality',
-    description: 'Manifest your dream life with proven manifestation techniques. 1:1 coaching, guided programs, and free resources.',
-    images: [
-      {
-        url: '/og-default.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Manifestation Coach',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Manifestation Coach - Transform Your Reality',
-    description: 'Manifest your dream life with proven manifestation techniques.',
-    images: ['/og-default.jpg'],
-  },
-  verification: {
-    google: process.env.GOOGLE_SITE_VERIFICATION,
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const siteSettings = await sanityFetch<SiteSettings | null>({
+    query: queries.siteSettings,
+    tags: ['sanity', 'home'],
+  })
+
+  const title =
+    siteSettings?.seoDefaults?.title?.trim() ||
+    siteSettings?.title?.trim() ||
+    'Manifestation Guide'
+  const description =
+    siteSettings?.seoDefaults?.description?.trim() ||
+    siteSettings?.tagline?.trim() ||
+    undefined
+  const imageSource = siteSettings?.seoDefaults?.ogImage
+  const imageUrl = imageSource?.asset?._ref
+    ? urlFor(imageSource)?.width(1200).height(630).fit('crop').url()
+    : undefined
+  const images = imageUrl
+    ? [{ url: imageUrl, width: 1200, height: 630, alt: title }]
+    : undefined
+
+  return {
+    title: { absolute: title },
+    description,
+    openGraph: {
+      type: 'website',
+      locale: 'en_IN',
+      siteName: siteSettings?.title || 'Manifestation Guide',
+      title,
+      description,
+      images,
+    },
+    twitter: {
+      card: images ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images,
+    },
+  }
 }
 
 async function getHomeData() {

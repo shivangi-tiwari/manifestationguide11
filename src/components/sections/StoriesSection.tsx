@@ -71,7 +71,7 @@ export function StoriesSection({
           sanityImage={storiesImage}
           doodleName="stories"
           alt="Stories illustration"
-          className="max-w-[260px] mx-auto lg:max-w-md lg:mx-0"
+          className="max-w-[160px] mx-auto sm:max-w-[180px] md:max-w-[200px] lg:max-w-md lg:mx-0"
         />
         <div>
           {videos.length > 0 && (
