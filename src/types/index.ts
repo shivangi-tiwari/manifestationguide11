@@ -136,6 +136,7 @@ export interface Inquiry extends SanityDocument {
   interest?: string // package reference or free text
   message: string
   preferredTiming?: string
+  termsAccepted: boolean
   status: 'new' | 'replied' | 'closed'
   createdAt: string
   source: string
