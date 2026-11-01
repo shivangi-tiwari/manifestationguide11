@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sanityWriteClient } from '@/lib/sanity/writeClient'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 interface YouTubeSearchItem {
   id: {
     videoId: string
@@ -131,6 +134,8 @@ function getBestThumbnail(snippet: YouTubeVideoItem['snippet']): string | undefi
 }
 
 export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
+  const dryRun = request.nextUrl.searchParams.get('dryRun') === '1'
   const startTime = Date.now()
   let created = 0
   let updated = 0
@@ -139,7 +144,6 @@ export async function GET(request: NextRequest) {
 
   try {
     // Verify cron secret
-    const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -147,7 +151,6 @@ export async function GET(request: NextRequest) {
 
     const channelId = process.env.YOUTUBE_CHANNEL_ID
     const apiKey = process.env.YOUTUBE_API_KEY
-    const dryRun = request.nextUrl.searchParams.get('dryRun') === '1'
 
     if (!channelId || !apiKey) {
       return NextResponse.json(
