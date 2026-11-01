@@ -76,6 +76,10 @@ The scheduled GitHub Actions workflow can also be started manually from the repo
 
 Studio is mounted at `/studio`. The configuration is in `src/cms/sanity.config.ts`; schemas are in `src/cms/schemaTypes/`. Content changes are revalidated through the Sanity webhook route at `/api/revalidate`.
 
+## Deployment
+
+The site is prepared for Netlify, with the YouTube sync scheduled through GitHub Actions. See [DEPLOY.md](./DEPLOY.md) for environment-variable setup, deploy steps, sync workflow setup, and rollback guidance.
+
 ## Main project paths
 
 - `src/app/page.tsx` — home page data loading
