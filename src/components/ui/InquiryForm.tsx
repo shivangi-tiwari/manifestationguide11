@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback, useActionState } from 'react'
 import { z } from 'zod'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -42,8 +42,10 @@ function InquiryFormInner({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const turnstileContainerRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<number | null>(null)
 
-  const validateField = (name: keyof InquiryFormData, value: any) => {
+  const validateField = useCallback((name: keyof InquiryFormData, value: any) => {
     const fieldSchema = inquirySchema.shape[name]
     if (fieldSchema) {
       const result = fieldSchema.safeParse(value)
@@ -57,14 +59,64 @@ function InquiryFormInner({
         })
       }
     }
-  }
+  }, [])
 
-  const handleChange = (name: keyof InquiryFormData, value: any) => {
+  const handleChange = useCallback((name: keyof InquiryFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     validateField(name, value)
-  }
+  }, [validateField])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleTurnstileVerify = useCallback((token: string) => {
+    handleChange('turnstileToken', token)
+  }, [handleChange])
+
+  const handleTurnstileExpire = useCallback(() => {
+    handleChange('turnstileToken', '')
+  }, [handleChange])
+
+  // Load and render Turnstile widget
+  useEffect(() => {
+    if (!turnstileSiteKey || !turnstileContainerRef.current) return
+
+    const loadTurnstile = () => {
+      if (typeof window === 'undefined') return
+      if ((window as any).turnstile) {
+        renderWidget()
+      } else {
+        const script = document.createElement('script')
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+        script.async = true
+        script.defer = true
+        script.onload = renderWidget
+        document.head.appendChild(script)
+      }
+    }
+
+    const renderWidget = () => {
+      if (!turnstileContainerRef.current || (window as any).turnstile === undefined) return
+      // Clear any existing widget
+      turnstileContainerRef.current.innerHTML = ''
+      widgetIdRef.current = (window as any).turnstile.render(turnstileContainerRef.current, {
+        sitekey: turnstileSiteKey,
+        theme: 'light',
+        callback: handleTurnstileVerify,
+        'expired-callback': handleTurnstileExpire,
+        'error-callback': handleTurnstileExpire,
+      })
+    }
+
+    loadTurnstile()
+
+    return () => {
+      if (widgetIdRef.current && (window as any).turnstile) {
+        try {
+          ;(window as any).turnstile.remove(widgetIdRef.current)
+        } catch {}
+      }
+    }
+  }, [turnstileSiteKey, handleTurnstileVerify, handleTurnstileExpire])
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitStatus('idle')
     setErrorMessage('')
@@ -99,24 +151,23 @@ function InquiryFormInner({
           turnstileToken: '',
           honeypot: '',
         })
+        // Reset Turnstile widget after successful submit
+        if (widgetIdRef.current && (window as any).turnstile) {
+          try {
+            ;(window as any).turnstile.reset(widgetIdRef.current)
+          } catch {}
+        }
       } else {
         setSubmitStatus('error')
         setErrorMessage(response.message || 'Something went wrong. Please try again.')
       }
     } catch (err) {
+      console.error('Submit error:', err)
       setSubmitStatus('error')
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleTurnstileVerify = (token: string) => {
-    handleChange('turnstileToken', token)
-  }
-
-  const handleTurnstileExpire = () => {
-    handleChange('turnstileToken', '')
   }
 
   if (submitStatus === 'success') {
@@ -200,7 +251,7 @@ function InquiryFormInner({
         />
       </div>
 
-      <div id="turnstile-container"></div>
+      <div ref={turnstileContainerRef} id="turnstile-container" className="turnstile-widget" />
 
       {submitStatus === 'error' && (
         <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" role="alert">

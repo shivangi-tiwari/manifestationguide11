@@ -5,12 +5,13 @@ import { clsx } from 'clsx'
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll'
 
 type SectionVariant = 'cream' | 'sage' | 'butter' | 'default' | 'alternate' | 'dark' | 'accent'
+type WaveToVariant = 'cream' | 'sage' | 'butter' | 'olive'
 
 interface SectionProps extends HTMLAttributes<HTMLElement> {
   variant?: SectionVariant
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
-  waveTo?: 'cream' | 'sage' | 'butter'
+  waveTo?: WaveToVariant
 }
 
 export const Section = forwardRef<HTMLElement, SectionProps>(
@@ -51,15 +52,15 @@ export const Section = forwardRef<HTMLElement, SectionProps>(
             aria-hidden="true"
             className={clsx(
               'pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(2rem,5vw,4rem)] w-full',
-              'stroke-olive/25',
               waveTo === 'cream' && 'fill-cream',
               waveTo === 'sage' && 'fill-sage',
-              waveTo === 'butter' && 'fill-butter'
+              waveTo === 'butter' && 'fill-butter',
+              waveTo === 'olive' && 'fill-olive'
             )}
             viewBox="0 0 1440 80"
             preserveAspectRatio="none"
           >
-            <path d="M0 32 C120 0 240 64 360 32 C480 0 600 64 720 32 C840 0 960 64 1080 32 C1200 0 1320 64 1440 32 L1440 80 L0 80 Z" strokeWidth="2" />
+            <path d="M0 32 C120 0 240 64 360 32 C480 0 600 64 720 32 C840 0 960 64 1080 32 C1200 0 1320 64 1440 32 L1440 80 L0 80 Z" />
           </svg>
         )}
       </section>
@@ -94,9 +95,9 @@ export const SectionHeader = ({
         {title}
       </h2>
     </div>
-    {subtitle && (
+    {subtitle?.trim() && (
       <p className={clsx('mt-4 text-body-lg text-muted max-w-3xl text-balance', align === 'center' ? 'mx-auto' : 'mx-0')}>
-        {subtitle}
+        {subtitle.trim()}
       </p>
     )}
   </div>

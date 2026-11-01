@@ -7,8 +7,8 @@ import { AboutSection } from '@/components/sections/AboutSection'
 import { VideosSection } from '@/components/sections/VideosSection'
 import { StoriesSection } from '@/components/sections/StoriesSection'
 import { ContactSection } from '@/components/sections/ContactSection'
-import { fetchRecentSuccessStoryVideos } from '@/lib/youtube'
-import type { YouTubeSuccessStoryVideo } from '@/lib/youtube'
+import { fetchChannelPlaylists } from '@/lib/youtube'
+import type { YouTubePlaylist } from '@/lib/youtube'
 import type { SiteSettings, Package, Video, SuccessStory, FAQ as FAQType } from '@/types'
 
 export const metadata: Metadata = {
@@ -50,35 +50,36 @@ export const metadata: Metadata = {
 }
 
 async function getHomeData() {
-  const [siteSettings, packages, videos, stories, faqs] = await Promise.all([
+  const [siteSettings, packages, stories, successStoryVideos, faqs] = await Promise.all([
     sanityFetch<SiteSettings | null>({ query: queries.siteSettings, tags: ['sanity', 'home'] }),
     sanityFetch<Package[]>({ query: queries.packages, tags: ['sanity', 'home'] }),
-    sanityFetch<Video[]>({ query: queries.videos, tags: ['sanity', 'home'] }),
     sanityFetch<SuccessStory[]>({ query: queries.successStories, tags: ['sanity', 'home'] }),
+    sanityFetch<Video[]>({ query: queries.successStoryVideos, tags: ['sanity', 'home'] }),
     sanityFetch<FAQType[]>({ query: queries.faqs, tags: ['sanity', 'home'] }),
   ])
 
-  let latestSuccessVideos: YouTubeSuccessStoryVideo[] = []
-  let youtubeFeedError = false
-  const channelId = siteSettings?.youtubeChannelId?.trim()
+  const playlists: YouTubePlaylist[] = []
+  let playlistsError = false
+  const channelId = siteSettings?.youtubeChannelId?.trim() || process.env.YOUTUBE_CHANNEL_ID?.trim()
+  const apiKey = process.env.YOUTUBE_API_KEY?.trim()
 
-  if (channelId) {
+  if (channelId && apiKey) {
     try {
-      latestSuccessVideos = await fetchRecentSuccessStoryVideos(channelId)
+      playlists.push(...await fetchChannelPlaylists(channelId, apiKey))
     } catch (error) {
-      console.error('Failed to load recent YouTube success story videos.', error)
-      youtubeFeedError = true
+      console.error('Failed to load YouTube playlists.', error)
+      playlistsError = true
     }
   } else {
-    console.error('Cannot load YouTube success story videos: the channel ID is missing from Site Settings.')
-    youtubeFeedError = true
+    console.error('Cannot load YouTube playlists: the channel ID or API key is missing.')
+    playlistsError = true
   }
 
-  return { siteSettings, packages, videos, stories, faqs, latestSuccessVideos, youtubeFeedError }
+  return { siteSettings, packages, stories, successStoryVideos, faqs, playlists, playlistsError }
 }
 
 export default async function HomePage() {
-  const { siteSettings, packages, videos, stories, faqs, latestSuccessVideos, youtubeFeedError } = await getHomeData()
+  const { siteSettings, packages, stories, successStoryVideos, faqs, playlists, playlistsError } = await getHomeData()
 
   // Transform packages for ContactSection (minimal shape)
   const contactPackages = (packages || []).map((pkg) => ({
@@ -98,6 +99,7 @@ export default async function HomePage() {
       youtubeChannelId={siteSettings?.youtubeChannelId}
       mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
       footerText={siteSettings?.footerText}
+      developerCredit={siteSettings?.developerCredit}
       disclaimerText={siteSettings?.disclaimerText}
     >
       <HeroSection
@@ -113,16 +115,15 @@ export default async function HomePage() {
         aboutImage={sectionImages?.about}
       />
       <VideosSection
-        videos={videos || []}
+        playlists={playlists}
+        playlistsError={playlistsError}
         mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
         mustWatchPlaylistId={siteSettings?.mustWatchPlaylistId}
-        youtubeChannelId={siteSettings?.youtubeChannelId}
         videosImage={sectionImages?.videos}
       />
       <StoriesSection
         stories={stories || []}
-        latestVideos={latestSuccessVideos}
-        youtubeFeedError={youtubeFeedError}
+        syncedStoryVideos={successStoryVideos || []}
         storiesSubtitle={siteSettings?.storiesSubtitle}
         storiesImage={sectionImages?.stories}
       />

@@ -1,11 +1,5 @@
 'use client'
 
-import { clsx } from 'clsx'
-
-interface HowItWorksProps {
-  instagramHandle?: string
-}
-
 const steps = [
   { number: 1, title: 'Send an inquiry or DM on Instagram' },
   { number: 2, title: 'She replies and agrees a time' },
@@ -13,7 +7,7 @@ const steps = [
   { number: 4, title: 'Session confirmed' },
 ]
 
-export function HowItWorks({ instagramHandle }: HowItWorksProps) {
+export function HowItWorks() {
   return (
     <div className="mb-12">
       <h3 className="text-heading-lg font-display font-semibold text-foreground mb-6">
@@ -29,11 +23,6 @@ export function HowItWorks({ instagramHandle }: HowItWorksProps) {
           </div>
         ))}
       </div>
-      {instagramHandle && (
-        <p className="mt-6 text-sm text-muted text-center">
-          Or DM directly: <a href={`https://instagram.com/${instagramHandle.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center py-2 text-brown hover:underline font-medium">@{instagramHandle.replace('@', '')}</a>
-        </p>
-      )}
     </div>
   )
 }

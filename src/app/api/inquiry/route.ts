@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sanityWriteClient } from '@/lib/sanity/writeClient'
+import { getMandatoryPlaylistUrl } from '@/lib/sanity/mandatoryPlaylist'
 import { Resend } from 'resend'
 
 const inquirySchema = z.object({
@@ -37,9 +38,10 @@ async function verifyTurnstile(token: string): Promise<boolean> {
 
 async function sendCoachEmail(data: InquiryData, packageName: string) {
   const coachEmail = process.env.COACH_EMAIL || 'manifestationcoach55@gmail.com'
+  const fromEmail = process.env.INQUIRY_FROM_EMAIL || 'onboarding@resend.dev'
 
   await resend.emails.send({
-    from: 'Manifestation Coach <noreply@manifestationcoach.in>',
+    from: `Manifestation Coach <${fromEmail}>`,
     to: coachEmail,
     subject: `New Inquiry: ${data.name} - ${packageName}`,
     html: `
@@ -60,37 +62,29 @@ async function sendCoachEmail(data: InquiryData, packageName: string) {
   })
 }
 
-async function sendVisitorAutoReply(data: InquiryData, playlistUrl: string) {
+async function sendVisitorAutoReply(data: InquiryData, playlistUrl?: string) {
+  const fromEmail = process.env.INQUIRY_FROM_EMAIL || 'onboarding@resend.dev'
+
   await resend.emails.send({
-    from: 'Manifestation Coach <noreply@manifestationcoach.in>',
+    from: `Manifestation Coach <${fromEmail}>`,
     to: data.email,
-    subject: 'Thanks for reaching out! Here\'s your playlist 🎵',
+    subject: playlistUrl ? 'Thanks for reaching out! Here\'s your playlist' : 'Thanks for reaching out!',
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #7c3aed;">Thanks for your inquiry, ${data.name}!</h2>
         <p>I've received your message. Thank you for getting in touch.</p>
 
-        <div style="background: linear-gradient(135deg, #7c3aed, #ec4899); padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center;">
-          <p style="color: white; margin: 0 0 16px; font-size: 16px;">
-            <strong>Before we start, please review this playlist:</strong>
-          </p>
-          <a href="${playlistUrl}" target="_blank"
-             style="display: inline-block; background: white; color: #7c3aed; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none;">
-            Watch the Playlist
-          </a>
-        </div>
-
-        <p style="color: #666;">This playlist covers the foundational concepts we'll work with during your sessions. Going through it beforehand helps us hit the ground running!</p>
-
-        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-
-        <p style="color: #666; font-size: 14px;">
-          <strong>Important:</strong> All coaching sessions are conducted via Zoom. Payment is collected via GPay/UPI after we agree on a schedule. No refunds on completed sessions.
-        </p>
-
-        <p style="color: #999; font-size: 12px; margin-top: 24px;">
-          Manifestation Coach | manifestationcoach55@gmail.com | @manifestationcoach55
-        </p>
+        ${playlistUrl ? `
+          <div style="background: linear-gradient(135deg, #7c3aed, #ec4899); padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center;">
+            <p style="color: white; margin: 0 0 16px; font-size: 16px;">
+              <strong>Before we start, please review this playlist:</strong>
+            </p>
+            <a href="${playlistUrl}" target="_blank"
+               style="display: inline-block; background: white; color: #7c3aed; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none;">
+              Watch the Playlist
+            </a>
+          </div>
+        ` : ''}
       </div>
     `,
   })
@@ -145,7 +139,12 @@ export async function POST(request: NextRequest) {
     })
 
     // Send emails (don't await - fire and forget)
-    const playlistUrl = process.env.MANDATORY_PLAYLIST_URL || 'https://youtube.com/playlist?list=PLxxxxxx'
+    let playlistUrl: string | undefined
+    try {
+      playlistUrl = await getMandatoryPlaylistUrl()
+    } catch (error) {
+      console.error('Failed to load the auto-reply playlist from Site Settings.', error)
+    }
 
     sendCoachEmail(data, packageName).catch(console.error)
     sendVisitorAutoReply(data, playlistUrl).catch(console.error)

@@ -31,7 +31,7 @@ interface ContactSectionProps {
 
 export function ContactSection({ packages, faqs, turnstileSiteKey, instagramHandle, email, contactIntro }: ContactSectionProps) {
   return (
-    <Section variant="sage" size="lg" id="contact" aria-labelledby="contact-heading">
+    <Section variant="sage" size="lg" id="contact" aria-labelledby="contact-heading" waveTo="olive">
       <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
         <div>
           <SectionHeader
@@ -42,7 +42,7 @@ export function ContactSection({ packages, faqs, turnstileSiteKey, instagramHand
             label="Get in touch"
           />
           <PackageCards packages={packages} />
-          <HowItWorks instagramHandle={instagramHandle} />
+          <HowItWorks />
         </div>
         <div>
           <Card variant="outlined" padding="lg" className="bg-olive text-cream border-cream/25">
@@ -55,6 +55,19 @@ export function ContactSection({ packages, faqs, turnstileSiteKey, instagramHand
           </Card>
         </div>
       </div>
+      {instagramHandle?.trim() && (
+        <p className="mt-6 text-sm text-muted text-center">
+          Or DM directly:{' '}
+          <a
+            href={`https://instagram.com/${instagramHandle.replace('@', '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-[44px] items-center py-2 text-brown hover:underline font-medium"
+          >
+            @{instagramHandle.replace('@', '')}
+          </a>
+        </p>
+      )}
     </Section>
   )
 }

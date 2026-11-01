@@ -2,43 +2,54 @@
 
 import { SectionImage } from '@/components/ui/SectionImage'
 import { Section, SectionHeader } from '@/components/ui/Section'
-import type { SuccessStory } from '@/types'
-import type { YouTubeSuccessStoryVideo } from '@/lib/youtube'
+import type { SuccessStory, Video } from '@/types'
 
 interface StoriesSectionProps {
   stories: SuccessStory[]
-  latestVideos: YouTubeSuccessStoryVideo[]
-  youtubeFeedError?: boolean
+  syncedStoryVideos: Video[]
   storiesImage?: any
   storiesSubtitle?: string
 }
 
 export function StoriesSection({
   stories,
-  latestVideos,
-  youtubeFeedError = false,
+  syncedStoryVideos,
   storiesImage,
   storiesSubtitle,
 }: StoriesSectionProps) {
-  const curatedVideos = [...stories]
-    .filter((story) => story.published && story.youtubeVideoId)
-    .map((story) => ({
-      videoId: story.youtubeVideoId!,
-      title: story.headline,
-      publishedAt: story.date,
-    }))
+  const videoById = new Map<string, {
+    videoId: string
+    title: string
+    publishedAt: string
+    featured: boolean
+  }>()
 
-  const videoById = new Map(latestVideos.map((video) => [video.videoId, video]))
-  for (const video of curatedVideos) {
-    if (!videoById.has(video.videoId)) videoById.set(video.videoId, video)
+  for (const video of syncedStoryVideos) {
+    videoById.set(video.youtubeId, {
+      videoId: video.youtubeId,
+      title: video.title,
+      publishedAt: video.publishedAt,
+      featured: video.featured,
+    })
   }
 
-  const videos = [...videoById.values()].sort(
-    (a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)
+  for (const story of stories) {
+    if (!story.published || !story.youtubeVideoId || videoById.has(story.youtubeVideoId)) continue
+    videoById.set(story.youtubeVideoId, {
+      videoId: story.youtubeVideoId,
+      title: story.headline,
+      publishedAt: story.date,
+      featured: story.featured,
+    })
+  }
+
+  const videos = [...videoById.values()].sort((a, b) =>
+    Number(b.featured) - Number(a.featured) ||
+    Date.parse(b.publishedAt) - Date.parse(a.publishedAt)
   )
 
   return (
-    <Section variant="cream" size="lg" id="stories" aria-labelledby="stories-heading" waveTo="cream">
+    <Section variant="cream" size="lg" id="stories" aria-labelledby="stories-heading" waveTo="sage">
       <SectionHeader
         title="Success stories"
         subtitle={storiesSubtitle}
@@ -51,7 +62,7 @@ export function StoriesSection({
           sanityImage={storiesImage}
           doodleName="stories"
           alt="Stories illustration"
-          className="max-w-sm lg:max-w-md"
+          className="max-w-[260px] mx-auto lg:max-w-md lg:mx-0"
         />
         <div>
           <h3 className="mb-4 text-heading-lg font-display font-semibold text-foreground">
@@ -99,9 +110,7 @@ export function StoriesSection({
           </ul>
           {videos.length === 0 && (
             <p className="rounded-card border border-border bg-white/70 p-6 text-muted">
-              {youtubeFeedError
-                ? 'Recent YouTube videos could not be loaded. Please try again later.'
-                : 'No recent video titles include “Success Story”.'}
+              No success story videos are available yet.
             </p>
           )}
           <p className="mt-4 text-sm text-muted italic">Results vary from person to person.</p>

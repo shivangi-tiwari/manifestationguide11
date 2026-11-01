@@ -63,8 +63,9 @@ export interface SiteSettings extends SanityDocument {
     description: string
     ogImage?: string
   }
-  footerText: string
-  disclaimerText: string
+  footerText?: string
+  developerCredit?: string
+  disclaimerText?: string
   policies?: {
     termsConditions?: PortableTextBlock[]
   }
@@ -103,6 +104,7 @@ export interface Video extends SanityDocument {
   category?: string
   featured: boolean
   hidden: boolean
+  isSuccessStory?: boolean
   order: number
   source: 'youtube-sync' | 'manual'
 }

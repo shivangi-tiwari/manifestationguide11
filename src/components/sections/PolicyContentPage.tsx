@@ -20,6 +20,7 @@ export function PolicyContentPage({ title, content, siteSettings }: PolicyConten
       youtubeChannelId={siteSettings?.youtubeChannelId}
       mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
       footerText={siteSettings?.footerText}
+      developerCredit={siteSettings?.developerCredit}
       disclaimerText={siteSettings?.disclaimerText}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">

@@ -16,6 +16,7 @@ export const queries = {
     storiesSubtitle,
     seoDefaults,
     footerText,
+    developerCredit,
     disclaimerText,
     policies { termsConditions },
     sectionImages
@@ -61,7 +62,7 @@ export const queries = {
     duration
   }`,
 
-  videos: `*[_type == "video" && hidden != true] | order(order asc, publishedAt desc) {
+  videos: `*[_type == "video" && hidden != true && isSuccessStory != true] | order(order asc, publishedAt desc) {
     _id,
     title,
     youtubeId,
@@ -74,7 +75,7 @@ export const queries = {
     source
   }`,
 
-  featuredVideos: `*[_type == "video" && hidden != true && featured == true] | order(order asc) {
+  featuredVideos: `*[_type == "video" && hidden != true && isSuccessStory != true && featured == true] | order(order asc) {
     _id,
     title,
     youtubeId,
@@ -82,6 +83,14 @@ export const queries = {
     thumbnailUrl,
     publishedAt,
     category
+  }`,
+
+  successStoryVideos: `*[_type == "video" && hidden != true && isSuccessStory == true] | order(featured desc, publishedAt desc) {
+    _id,
+    title,
+    youtubeId,
+    publishedAt,
+    featured
   }`,
 
   successStories: `*[_type == "successStory" && published == true] | order(order asc, date desc) {

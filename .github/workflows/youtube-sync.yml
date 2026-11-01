@@ -1,0 +1,52 @@
+name: YouTube Sync
+
+on:
+  schedule:
+    # Run daily at 3:00 AM UTC (adjust as needed)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  youtube-sync:
+    name: Sync YouTube Videos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+      YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      SANITY_API_WRITE_TOKEN: ${{ secrets.SANITY_API_WRITE_TOKEN }}
+      NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+      NEXT_PUBLIC_SANITY_DATASET: ${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+      SITE_URL: ${{ secrets.SITE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run YouTube Sync
+        run: |
+          curl -X GET "${{ env.SITE_URL }}/api/cron/youtube-sync" \
+            -H "Authorization: Bearer ${{ env.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body \
+            --max-time 300 \
+            -o sync-result.json
+
+      - name: Show Sync Result
+        if: always()
+        run: cat sync-result.json
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "::error::YouTube sync failed. Check workflow logs for details."

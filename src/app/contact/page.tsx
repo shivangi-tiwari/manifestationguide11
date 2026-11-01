@@ -37,6 +37,9 @@ export default async function ContactPage() {
       email={siteSettings?.contactEmail}
       youtubeChannelId={siteSettings?.youtubeChannelId}
       mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
+      footerText={siteSettings?.footerText}
+      developerCredit={siteSettings?.developerCredit}
+      disclaimerText={siteSettings?.disclaimerText}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-pink-900/50 to-orange-900/50" />

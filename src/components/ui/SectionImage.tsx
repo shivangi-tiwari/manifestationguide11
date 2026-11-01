@@ -19,8 +19,8 @@ export function SectionImage({ sanityImage, doodleName, alt = '', className, pri
   const dimensions = assetRef?.match(/^image-.+-(\d+)x(\d+)-([a-z0-9]+)$/i)
   const imageUrl = assetRef ? urlFor(sanityImage).width(dimensions ? Number(dimensions[1]) : 800).url() : ''
   const containerClassName = clsx(
-    'relative mx-auto w-full max-w-full aspect-[4/5] overflow-hidden rounded-t-full border-2 border-olive bg-sage shadow-[0.5rem_0.5rem_0_#5C6B4B]',
-    className || 'max-w-sm lg:max-w-md'
+    'relative mx-auto w-full aspect-[4/5] overflow-hidden rounded-t-full border-2 border-olive bg-sage shadow-[0.5rem_0.5rem_0_#5C6B4B]',
+    className || 'max-w-[260px] lg:max-w-md'
   )
   const imageAlt = alt || `Section illustration for ${doodleName}`
 

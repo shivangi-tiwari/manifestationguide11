@@ -25,7 +25,7 @@ export function RevealOnScroll({ children, className }: RevealOnScrollProps) {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.12 }
+      { threshold: 0 }
     )
 
     observer.observe(element)

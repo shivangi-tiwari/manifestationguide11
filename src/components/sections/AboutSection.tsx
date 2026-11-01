@@ -44,7 +44,12 @@ export function AboutSection({ aboutSummary, instagramHandle, aboutImage, aboutS
           )}
         </div>
         <div className="relative order-1 lg:order-1">
-          <SectionImage sanityImage={aboutImage} doodleName="about" alt="About illustration" />
+          <SectionImage
+            sanityImage={aboutImage}
+            doodleName="about"
+            alt="About illustration"
+            className="max-w-[260px] mx-auto lg:max-w-md lg:mx-0"
+          />
         </div>
       </div>
     </Section>

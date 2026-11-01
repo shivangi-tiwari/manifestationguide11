@@ -13,6 +13,7 @@ interface MainLayoutProps {
   youtubeChannelId?: string
   mustWatchPlaylistUrl?: string
   footerText?: string
+  developerCredit?: string
   disclaimerText?: string
 }
 
@@ -25,6 +26,7 @@ export function MainLayout({
   youtubeChannelId,
   mustWatchPlaylistUrl,
   footerText,
+  developerCredit,
   disclaimerText,
 }: MainLayoutProps) {
   return (
@@ -41,6 +43,7 @@ export function MainLayout({
         youtubeChannelId={youtubeChannelId}
         mustWatchPlaylistUrl={mustWatchPlaylistUrl}
         copyrightText={footerText}
+        developerCredit={developerCredit}
         disclaimerText={disclaimerText}
       />
     </div>

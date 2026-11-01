@@ -65,17 +65,23 @@ export function HeroSection({ siteName, tagline, hero, heroImage }: HeroSectionP
             </Button>
           </div>
           <div className="relative">
-            <SectionImage sanityImage={heroImage} doodleName="hero" alt={siteName} priority />
+            <SectionImage
+            sanityImage={heroImage}
+            doodleName="hero"
+            alt={siteName}
+            priority
+            className="max-w-[260px] mx-auto lg:max-w-md lg:mx-0"
+          />
           </div>
         </div>
       </RevealOnScroll>
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(2rem,5vw,4rem)] w-full fill-sage stroke-olive/25"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[clamp(2rem,5vw,4rem)] w-full fill-sage"
         viewBox="0 0 1440 80"
         preserveAspectRatio="none"
       >
-        <path d="M0 32 C120 0 240 64 360 32 C480 0 600 64 720 32 C840 0 960 64 1080 32 C1200 0 1320 64 1440 32 L1440 80 L0 80 Z" strokeWidth="2" />
+        <path d="M0 32 C120 0 240 64 360 32 C480 0 600 64 720 32 C840 0 960 64 1080 32 C1200 0 1320 64 1440 32 L1440 80 L0 80 Z" />
       </svg>
     </section>
   )

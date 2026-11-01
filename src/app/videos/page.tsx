@@ -23,6 +23,7 @@ async function getVideosData() {
 
 export default async function VideosPage() {
   const { siteSettings, videos } = await getVideosData()
+  const youtubeChannelId = siteSettings?.youtubeChannelId?.trim()
 
   const categorized = (videos || []).reduce((acc: Record<string, Video[]>, video) => {
     const cat = video.category || 'General'
@@ -39,6 +40,9 @@ export default async function VideosPage() {
       email={siteSettings?.contactEmail}
       youtubeChannelId={siteSettings?.youtubeChannelId}
       mustWatchPlaylistUrl={siteSettings?.mustWatchPlaylistUrl}
+      footerText={siteSettings?.footerText}
+      developerCredit={siteSettings?.developerCredit}
+      disclaimerText={siteSettings?.disclaimerText}
     >
       <Section variant="dark" size="xl" className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-space-cadet-900/80 via-warm-brown-700/60 to-deep-burgundy-700/80" />
@@ -47,13 +51,15 @@ export default async function VideosPage() {
           <p className="text-body-lg md:text-heading-md text-background/90 max-w-2xl mx-auto">
             Learn manifestation techniques, watch guided meditations, and get inspired by real success stories. Subscribe for weekly updates.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
-              <a href={`https://youtube.com/@${siteSettings?.youtubeChannelId || 'ManifestationGuide11'}`} target="_blank" rel="noopener noreferrer">
-                Subscribe on YouTube
-              </a>
-            </Button>
-          </div>
+          {youtubeChannelId && (
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <Button size="lg" variant="outline" className="border-background/30 text-background hover:bg-background/10" asChild>
+                <a href={`https://www.youtube.com/channel/${encodeURIComponent(youtubeChannelId)}`} target="_blank" rel="noopener noreferrer">
+                  Subscribe on YouTube
+                </a>
+              </Button>
+            </div>
+          )}
         </div>
       </Section>
 
