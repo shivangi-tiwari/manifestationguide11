@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
+import Image from 'next/image'
 import { sanityFetch } from '@/lib/sanity/client'
 import { queries } from '@/lib/sanity/queries'
+import { getSanityImageDimensions, urlFor } from '@/lib/sanity/image'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -50,13 +52,23 @@ export default async function SuccessStoriesPage() {
           {stories?.map((story) => {
               // Type narrowing for PortableText
               const storyContent = Array.isArray(story.story) ? story.story : []
+              const photoDimensions = story.photo ? getSanityImageDimensions(story.photo) : null
+              const photoUrl = story.photo && photoDimensions
+                ? urlFor(story.photo)?.width(photoDimensions.width).url()
+                : undefined
 
               return (
                 <Card key={story._id} variant="outlined" padding="lg" className="flex flex-col">
                   <CardContent className="flex-1 flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
-                      {story.photo ? (
-                        <img src={story.photo as string} alt={story.clientName} className="w-12 h-12 rounded-full object-cover" />
+                      {photoUrl && photoDimensions ? (
+                        <Image
+                          src={photoUrl}
+                          alt={story.photo?.alt || ''}
+                          width={photoDimensions.width}
+                          height={photoDimensions.height}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                           <span className="text-white font-bold text-lg">{story.clientName.charAt(0)}</span>

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { SanityImageBlock } from '@/types'
 import { Doodle } from '@/components/ui/Doodle'
 import { clsx } from 'clsx'
-import { urlFor } from '@/lib/sanity/image'
+import { getSanityImageDimensions, urlFor } from '@/lib/sanity/image'
 
 interface SectionImageProps {
   sanityImage?: SanityImageBlock
@@ -16,8 +16,12 @@ interface SectionImageProps {
 
 export function SectionImage({ sanityImage, doodleName, alt = '', className, priority = false }: SectionImageProps) {
   const assetRef = sanityImage?.asset?._ref
-  const dimensions = assetRef?.match(/^image-.+-(\d+)x(\d+)-([a-z0-9]+)$/i)
-  const imageUrl = assetRef ? urlFor(sanityImage).width(dimensions ? Number(dimensions[1]) : 800).url() : ''
+  const dimensions = sanityImage ? getSanityImageDimensions(sanityImage) : null
+  const imageBuilder = assetRef && sanityImage ? urlFor(sanityImage) : null
+  const extension = assetRef?.match(/-([a-z0-9]+)$/i)?.[1].toLowerCase()
+  const imageUrl = imageBuilder
+    ? imageBuilder.width(dimensions?.width ?? 800).url()
+    : ''
   const containerClassName = clsx(
     'relative mx-auto w-full aspect-[4/5] overflow-hidden rounded-t-full border-2 border-olive bg-sage shadow-[0.5rem_0.5rem_0_#5C6B4B]',
     className || 'max-w-[260px] lg:max-w-md'
@@ -33,14 +37,13 @@ export function SectionImage({ sanityImage, doodleName, alt = '', className, pri
     }
 
     if (dimensions) {
-      const extension = dimensions[3].toLowerCase()
       return (
         <div className={clsx(containerClassName, 'flex items-end justify-center')}>
           <Image
             {...imageProps}
             alt={imageAlt}
-            width={Number(dimensions[1])}
-            height={Number(dimensions[2])}
+            width={dimensions.width}
+            height={dimensions.height}
             unoptimized={extension === 'gif' || extension === 'svg'}
             style={{ width: '100%', height: 'auto', maxHeight: '100%' }}
           />

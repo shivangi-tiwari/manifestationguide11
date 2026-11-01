@@ -1,23 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useActionState } from 'react'
-import { z } from 'zod'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from './Button'
 import { Input } from './Input'
 import { Textarea } from './Textarea'
 import { Checkbox } from './Checkbox'
 import { submitInquiry } from '@/app/actions/inquiry'
-
-const inquirySchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message too long'),
-  terms: z.boolean().refine((val) => val === true, 'You must accept the terms and conditions'),
-  turnstileToken: z.string().min(1, 'Please complete the verification'),
-  honeypot: z.string().max(0, 'Spam detected').optional(),
-})
-
-type InquiryFormData = z.infer<typeof inquirySchema>
+import { inquirySchema, type InquiryFormData } from '@/lib/inquirySchema'
 
 interface InquiryFormProps {
   turnstileSiteKey: string
@@ -130,6 +119,10 @@ function InquiryFormInner({
         }
       })
       setErrors(fieldErrors)
+      if (result.error.errors.some((err) => err.path[0] === 'turnstileToken' || err.path[0] === 'honeypot')) {
+        setSubmitStatus('error')
+        setErrorMessage('Unable to submit. Please complete verification and try again.')
+      }
       return
     }
 
@@ -203,7 +196,7 @@ function InquiryFormInner({
           tone="olive"
           label="Email Address *"
           type="email"
-          placeholder="you@example.com"
+          placeholder="Your email address"
           value={formData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
           error={errors.email}

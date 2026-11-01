@@ -1,4 +1,3 @@
-// Sanity document types (placeholders for Phase 2+)
 import type { PortableTextBlock } from '@portabletext/react'
 
 // Sanity image block type (extends PortableTextBlock for image blocks)
@@ -44,7 +43,6 @@ export interface SiteSettings extends SanityDocument {
   aboutSummary?: string
   aboutSubtitle?: string
   contactEmail: string
-  whatsappNumber?: string
   instagramHandle?: string
   socialLinks: {
     instagram?: string
@@ -112,7 +110,7 @@ export interface Video extends SanityDocument {
 export interface SuccessStory extends SanityDocument {
   _type: 'successStory'
   clientName: string
-  photo?: unknown // Sanity image
+  photo?: SanityImageBlock
   headline: string
   story: PortableTextBlock[]
   youtubeVideoId?: string

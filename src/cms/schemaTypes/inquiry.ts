@@ -7,7 +7,7 @@ export const inquiry = defineType({
   fields: [
     defineField({ name: 'name', title: 'Name', type: 'string', validation: (r) => r.required() }),
     defineField({ name: 'email', title: 'Email', type: 'string', validation: (r) => r.required().email() }),
-    defineField({ name: 'phone', title: 'Phone/WhatsApp', type: 'string' }),
+    defineField({ name: 'phone', title: 'Phone', type: 'string' }),
     defineField({ name: 'interest', title: 'Interest (Package or free text)', type: 'string' }),
     defineField({ name: 'message', title: 'Message', type: 'text', validation: (r) => r.required() }),
     defineField({ name: 'preferredTiming', title: 'Preferred Timing', type: 'string' }),

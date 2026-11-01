@@ -19,6 +19,7 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000'),
   title: {
     default: 'Manifestation Coach - Transform Your Reality',
     template: '%s | Manifestation Coach',

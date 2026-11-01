@@ -1,191 +1,86 @@
-# Audit Report — Architecture v3 vs Current Repo
+# Phase A Audit — Architecture v4
 
-**Generated:** 2025-10-28  
-**Phase:** A (Audit and reconcile)  
-**Scope:** Compare `ARCHITECTURE.md` v3 (sections 2–6) against the actual repo at `C:\Users\HP\Desktop\manifest`.
+**Reviewed:** 2026-11-01
+**Scope:** Architecture sections 2–7 and Prompt 2 checks against the current repository.
 
----
+## Executive summary
 
-## 1. Executive Summary
+The project is a Next.js 14 App Router site with Sanity, Resend, Turnstile, and a YouTube Data API sync. The site has one home-page inquiry flow, image dimensions are now derived from Sanity asset IDs, and missing Sanity project configuration fails outside the production-build step. The previous report described an earlier repository state and has been replaced.
 
-| Metric | Status |
-|--------|--------|
-| Build / lint / type-check | ✅ Pass (`npm run build`, `npm run lint`, `tsc --noEmit`) |
-| Forbidden deps present? | ❌ None (`supabase`, `next-auth`, `razorpay`, `stripe` removed in Phase 1) |
-| Secret exposure in client bundles | ❌ None |
-| **Overall** | **Repo is a clean strip-down** — only the Phase 1 placeholder exists. All v3 features are **missing** and must be built in Phases 2–5. |
+Prompt 2 items 1–6 have been implemented. Prompt 2 items 7–10 were audited; deviations and known risks are listed below rather than changed outside the requested critical-fix scope.
 
----
+## Architecture sections 2–7
 
-## 2. Section-by-Section Reconciliation
+### 2. Stack
 
-### 2.1 Final Stack (Architecture §2)
+| Requirement | Finding |
+|---|---|
+| Next.js 14, TypeScript, Tailwind 3 | Matches the package manifest and app structure. |
+| Sanity CMS and embedded Studio | Sanity clients and schemas exist. Studio currently registers only `siteSettings`; the other document types are not available in its desk. Prompt 4 addresses this. |
+| One protected inquiry path | The form calls `src/app/actions/inquiry.ts`. The duplicate `/api/inquiry` route has been removed. |
+| Spam controls | Server-side Zod validation, honeypot, Turnstile verification, and a five-attempts-per-minute IP limit are implemented. The limiter is process-local; see known risks. |
+| Hosting | No Vercel deployment config or direct Vercel dependency is present. No `netlify.toml` exists; Prompt 5 will determine whether one is needed. |
+| Removed features | No direct Supabase, NextAuth, Razorpay, Stripe, or WhatsApp implementation/dependency remains. `@vercel/edge` and `@vercel/stega` are transitive dependencies of Sanity packages, not direct dependencies or hosting configuration. |
 
-| Layer | Spec | Repo | Match? | Notes |
-|-------|------|------|--------|-------|
-| Framework | Next.js 14 App Router + TS | ✅ `next@14.2.0` | ✅ | |
-| Styling | Tailwind CSS 3 | ✅ `tailwindcss@3.4.0` | ✅ | |
-| CMS + Admin | Sanity (Studio at `/studio`) | ❌ No Sanity files | ❌ | **Missing entirely** |
-| Inquiries | Route handler → Sanity `inquiry` + Resend | ❌ No API routes | ❌ | **Missing entirely** |
-| Video | YouTube embeds + daily GitHub Actions sync | ❌ No sync code | ❌ | **Missing entirely** |
-| Payments | None | ✅ None | ✅ | Correctly removed |
-| Hosting | Netlify free tier | ❌ Vercel config (`next.config.mjs`) | ⚠️ | Must remove Vercel-specific config |
-| Source | GitHub private repo | ⚠️ Local only | ⚠️ | Not yet pushed |
+### 3. Site structure
 
-**Critical deviations:** Sanity, Inquiries, YouTube sync, GitHub Actions — all absent.  
-**Non-critical:** Hosting config targets Vercel; must switch to Netlify.
+The home page renders the Hero, About, Videos & Teaching, Success stories, and Contact sections. The contact DOM order is heading, optional intro, published packages, How it works, form, FAQ, and the direct-message line. Older section routes redirect to home-page anchors. Terms & Conditions is the remaining policy page, matching the user's later direction even though older architecture prose mentions additional policies.
 
----
+Some legacy route/component files remain alongside those redirects. `About.tsx`, `FeaturedVideos.tsx`, and `SuccessStories.tsx` have no current imports from the home page and should be treated as dead code until removed in an approved cleanup.
 
-### 2.2 Content Model — Intended vs Actual (Architecture §3)
+### 4. Sanity content model
 
-| Document Type | Spec Fields | Repo | Status |
-|---------------|-------------|------|--------|
-| `siteSettings` (singleton) | title, tagline, hero, about, contact email, Instagram, social, YouTube channel ID, **mandatoryPlaylistId**, SEO, footer, disclaimer | ❌ | **Missing** |
-| `page` | title, slug, portable-text body, SEO | ❌ | **Missing** |
-| `package` | title, slug, descriptions, price (optional), currency, price note, duration, featured, order, published | ❌ | **Missing** |
-| `video` | title, youtubeId (unique), description, thumbnail, publishedAt, category, featured, hidden, order, source | ❌ | **Missing** |
-| `successStory` | client name, photo, headline, story, YouTube ID, date, featured, order, published | ❌ | **Missing** |
-| `faq` | question, answer, order | ❌ | **Missing** |
-| `inquiry` | name, email, phone, interest, message, preferred timing, status, createdAt, source | ❌ | **Missing** |
-| `post` (optional) | title, slug, cover, body, date, published | ❌ | Deferred |
+Schemas and TypeScript types exist for Site Settings, pages, packages, videos, success stories, FAQs, and inquiries. Optional `aboutSubtitle`, `storiesSubtitle`, `contactIntro`, and `developerCredit` are queried and hidden when empty. The `isSuccessStory` video field is editor-controlled after creation.
 
-**Repo has:** Only `src/types/index.ts` with TS interfaces (placeholders).  
-**Sanity schemas, config, Studio embedding:** All absent.
+Studio currently exposes only the Site Settings singleton. Other schemas are not registered in `sanity.config.ts`, so the editor cannot manage packages, videos, stories, FAQs, pages, or inquiries there yet. The inquiry action writes `termsAccepted`, but the inquiry schema does not define that field; Studio will not show the recorded value until the schema is reconciled.
 
----
+### 5. Required behavior
 
-### 2.3 Intended Structure vs Actual (Architecture §4)
+| Rule | Finding |
+|---|---|
+| Sanity images use the shared URL helper and real dimensions | Section images and written-story photos use `urlFor`; dimensions come from Sanity asset IDs and are supplied to `next/image`. Responsive image frames are capped at 260px below `lg` and 448px from `lg`. |
+| Empty/optional content | The optional section subtitles, social links, playlist controls, and footer disclaimer are hidden when unconfigured. A success-story empty state is present. |
+| Contact flow | The form uses one Server Action. It validates with Zod, rejects a filled honeypot or invalid/missing Turnstile token, limits accepted requests per IP, saves to Sanity before attempting email, records consent, and returns success after an email failure while logging that failure. Sender and recipient are environment-only (`INQUIRY_FROM_EMAIL`, `INQUIRY_TO_EMAIL`). |
+| YouTube sync | Uses the official YouTube Data API, creates deterministic `video-<id>` documents, does not delete documents, sets `isSuccessStory` only on creation, and preserves category, featured, hidden, and order. It currently overwrites title and description on existing documents, contrary to Architecture §5. |
+| Revalidation | `/api/revalidate` checks `SANITY_REVALIDATE_SECRET` and calls `revalidateTag('sanity')`; the secret is accepted as a query parameter, which can expose it to request logs. |
+| Design | The site uses the documented cream, sage, butter, olive, and brown palette. Teaching text is brown on sage and passes the previously measured 4.9:1 contrast ratio. |
+| Build-time Sanity fallback | Missing project configuration is tolerated only when `NEXT_PHASE` is the production-build phase; the normal runtime throws instead of returning empty content. |
 
-| Spec Path | Exists? | Notes |
-|-----------|---------|-------|
-| `src/app/page.tsx` | ✅ | Placeholder only |
-| `src/app/about/`, `packages/`, `videos/`, `success-stories/`, `contact/`, `[slug]/` | ❌ | Missing |
-| `src/app/studio/[[...tool]]/page.tsx` | ❌ | Missing |
-| `src/app/api/inquiry/route.ts` | ❌ | Missing |
-| `src/app/api/cron/youtube-sync/route.ts` | ❌ | Missing |
-| `src/app/api/revalidate/route.ts` | ❌ | Missing |
-| `src/components/` (sections, cards, InquiryForm, InstagramButton) | ❌ | Empty dir |
-| `src/lib/sanity/{client,writeClient,queries,image}.ts` | ❌ | Missing |
-| `src/lib/youtube.ts` | ❌ | Missing |
-| `src/lib/email.ts` | ❌ | Missing |
-| `src/lib/utils.ts` | ✅ | Minimal (`cn` helper) |
-| `src/sanity/schemaTypes/*.ts` | ❌ | Missing dir |
-| `src/sanity/sanity.config.ts` | ❌ | Missing |
-| `.github/workflows/youtube-sync.yml` | ❌ | Missing |
-| `netlify.toml` (if needed) | ❌ | Missing |
+### 6. Design system
 
----
+The main section components use the botanical palette and shared image-frame component. The shared frame had a `max-w-full` utility that overrode its responsive maximum; this was removed, and browser measurements now show the 260px narrow frame and 448px desktop frame. No desktop image exceeds its frame.
 
-### 2.4 Key Behaviours — Must Hold (Architecture §5)
+### 7. Environment variables and secrets
 
-| Rule | Spec | Repo | Status |
-|------|------|------|--------|
-| Content fetched from Sanity via GROQ with tag `sanity` | Required | ❌ No Sanity client | ❌ |
-| `api/revalidate` verifies Sanity webhook secret, calls `revalidateTag('sanity')` | Required | ❌ No route | ❌ |
-| Hidden/unpublished items never render | Required | N/A | ❌ |
-| YouTube sync: idempotent upsert on YouTube ID (`video-<id>`) | Required | ❌ | ❌ |
-| Sync never overwrites coach-edited fields (category, featured, hidden, order, text) | Required | ❌ | ❌ |
-| Sync logs quota/API errors, doesn't crash | Required | ❌ | ❌ |
-| Cron route requires `Authorization: Bearer ${CRON_SECRET}` | Required | ❌ | ❌ |
-| Inquiry: Zod validation, IP rate limit, honeypot, Turnstile | Required | ❌ | ❌ |
-| Inquiry saved to Sanity first, then emailed to coach (reply-to=visitor) | Required | ❌ | ❌ |
-| Auto-reply to visitor with playlist message | Required | ❌ | ❌ |
-| Required T&C checkbox (no-refund policy) | Required | ❌ | ❌ |
-| No secrets in client bundles | Required | ✅ (no client code yet) | ✅ |
-| Packages show "Enquire" + "How it works" block | Required | ❌ | ❌ |
-| Contact: Instagram DM + email only (no WhatsApp) | Required | ❌ | ❌ |
-| Coach's verbatim About / Policy / Disclaimer text used | Required | ❌ (only in ARCHITECTURE.md) | ❌ |
+`.env.example` contains the documented variable names. `.env` and `.env.local` are ignored by Git. The source scan found no server-only token imported by a Client Component and no `NEXT_PUBLIC_` secret. The Sanity write client is used from server-side code only; YouTube API credentials are read from the server-rendered page/sync route.
 
----
+`NEXT_PUBLIC_SITE_URL` is empty in the local environment, so `metadataBase` deliberately falls back to localhost. The production deployment must set this variable to the public site URL.
 
-### 2.5 Environment Variables (Architecture §6)
+## Prompt 2 checks
 
-| Spec Variable | In `.env.example`? | Notes |
-|---------------|-------------------|-------|
-| `NEXT_PUBLIC_SITE_URL` | ✅ | |
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | ✅ | |
-| `NEXT_PUBLIC_SANITY_DATASET` | ✅ | |
-| `SANITY_API_READ_TOKEN` | ✅ | |
-| `SANITY_API_WRITE_TOKEN` | ✅ | |
-| `SANITY_REVALIDATE_SECRET` | ✅ | |
-| `YOUTUBE_API_KEY` | ✅ | |
-| `YOUTUBE_CHANNEL_ID` | ✅ | |
-| `CRON_SECRET` | ✅ | |
-| `RESEND_API_KEY` | ✅ | |
-| `INQUIRY_TO_EMAIL` | ✅ | |
-| `INQUIRY_FROM_EMAIL` | ✅ | |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | ✅ | |
-| `TURNSTILE_SECRET_KEY` | ✅ | |
-| **No `SUPABASE_*`, `NEXTAUTH_*`, `RAZORPAY_*`, `STRIPE_*`** | ✅ | Cleaned in Phase 1 |
+| # | Result | Finding |
+|---|---|---|
+| 1 | Fixed | The form uses one Server Action; the duplicate API route is removed. Server validation, IP rate limit, honeypot, Turnstile, Sanity-first persistence, post-save email/acknowledgement, and required terms acceptance are in place. |
+| 2 | Fixed | The `as string` image cast is removed. Sanity photos use the shared image helper and real width/height; image types are explicit. |
+| 3 | Fixed | Missing Sanity project configuration fails outside the production-build phase. Only a build with missing configuration uses the empty-data fallback. |
+| 4 | Pass | No secret access was found in Client Components or their imports. |
+| 5 | Pass with documentation cleanup pending | No direct forbidden dependencies, WhatsApp code, or Vercel config remains. The README is still the generic Vercel starter and will be replaced in Prompt 5. The remaining `@vercel/*` packages are transitive dependencies of Sanity and are not safe to remove independently. |
+| 6 | Fixed | Root metadata now sets `metadataBase` from `NEXT_PUBLIC_SITE_URL`, with a localhost fallback when the variable is blank. |
+| 7 | Deviation | Sync uses the Data API and has deterministic IDs, no deletes, and create-only `isSuccessStory`; it preserves category/featured/hidden/order but overwrites title and description during updates. Fatal upstream errors return HTTP 500 rather than success-with-warning. |
+| 8 | Pass | Components use the shared `urlFor` helper; no component creates a second Sanity client. |
+| 9 | Pass | No `@ts-expect-error` or `eslint-disable` comments were found in `src`. |
+| 10 | Pass | Video sync uses the official YouTube Data API; no YouTube HTML scraping was found. `isSuccessStory` is set only when a video document is created. |
 
-✅ `.env.example` matches spec exactly.
+## Remaining deviations and risks
 
----
+1. **Sync preserves some but not all editor choices.** Existing video titles and descriptions are overwritten during sync. The sync also returns an error status for fatal YouTube failures rather than a success response with warnings. Prompt 2 requested these as audit findings and limited fixes to items 1–6; approval is needed before changing this behavior.
+2. **IP rate limiting is process-local.** It reliably limits repeated requests handled by one running process, but separate/cold Netlify function instances do not share counters. A shared limiter would need a persistent service or storage design.
+3. **Revalidation secret is in the query string.** Consider moving it to a request header to reduce exposure in access logs.
+4. **Studio schemas are incomplete in the live configuration.** Only Site Settings is registered. Prompt 4 covers the editor-facing schema/desk work.
+5. **Handover/deploy documentation is incomplete.** README is starter content; `COACH-GUIDE.md`, `HANDOVER.md`, and `CREDITS.md` are absent. Prompts 3, 5, and 7 cover those materials.
+6. **Legacy code remains.** The three unused section components listed above contain older hard-coded UI and image handling. They do not appear in the current home-page imports.
+7. **Production configuration remains necessary.** Set `NEXT_PUBLIC_SITE_URL`, Sanity, Turnstile, Resend, and cron variables in the deployment environment; no values are recorded in this report.
 
-## 3. Leftover / Dead Code Check
+## Validation
 
-| Item | Found? | Action |
-|------|--------|--------|
-| `supabase` imports | ❌ | Clean |
-| `next-auth` / `next-auth/react` | ❌ | Clean |
-| `razorpay` / `stripe` imports | ❌ | Clean |
-| `@supabase/ssr` | ❌ | Removed in Phase 1 |
-| `/dashboard`, `/auth/*`, `/community`, `/coaching` routes | ❌ | Removed in Phase 1 |
-| `middleware.ts` | ❌ | Removed |
-| `providers.tsx` | ❌ | Removed |
-| `schema.sql` | ❌ | Removed |
-| Vercel-specific config | ⚠️ `next.config.mjs` is generic but was Vercel-oriented | Must verify no `vercel` references |
-
-**No forbidden code or secrets remain.**
-
----
-
-## 4. Missing Pieces — Build Order (Phases 2–5)
-
-| Phase | Deliverable | Est. Effort |
-|-------|-------------|-------------|
-| **2** | Sanity install, schemas, Studio at `/studio`, seed content | M |
-| **3** | All public pages + sections pulling from Sanity, revalidation webhook, SEO, Instagram button, policy pages | L |
-| **4** | Inquiry API (Zod, rate limit, honeypot, Turnstile), Sanity write, Resend emails (coach + auto-reply with playlist), Studio inquiry list view | M |
-| **5** | `lib/youtube.ts`, GitHub Actions workflow (daily + manual dispatch), backfill logic | M |
-| **B** | Netlify deploy, env var docs, CORS/webhook/Turnstile/Secrets config | S |
-| **C** | Security headers, Lighthouse 90+ mobile, lazy YouTube, sitemap/robots/OG, empty states, Studio UX polish | M |
-| **D** | `COACH-GUIDE.md`, `HANDOVER.md`, `README.md`, finalize `AUDIT.md` | S |
-
----
-
-## 5. Known Deviations (to be resolved)
-
-1. **Hosting target** — `next.config.mjs` is generic but the project has never been deployed to Netlify. Must add `netlify.toml` if any Netlify-specific config is needed (headers, redirects, build command).
-2. **Content tone** — Coach's verbatim text lives only in `ARCHITECTURE.md`. Must be seeded into Sanity `siteSettings` and `page` documents during Phase 2/3.
-3. **Playlist ID** — `siteSettings.mandatoryPlaylistId` field added to spec but not yet in any schema. Will add in Phase 2.
-4. **No `post` type** — Deferred per spec (optional). Omitted for now.
-
----
-
-## 6. Critical Items Blocking Phase B (Deploy)
-
-| Item | Must Fix Before Deploy |
-|------|------------------------|
-| Sanity project created, CORS set to Netlify URL + `/studio` | Yes |
-| Sanity webhook → `/api/revalidate` with secret | Yes |
-| Resend domain verified (or `INQUIRY_TO_EMAIL` = Resend account email as fallback) | Yes |
-| Turnstile hostname allowed | Yes |
-| GitHub Actions secrets (`CRON_SECRET`, site URL) set | Yes |
-| All env vars documented and set in Netlify | Yes |
-
----
-
-## 7. Next Steps
-
-1. **Phase 2:** Install Sanity, create all schema types, embed Studio, seed coach's verbatim content.
-2. **Phase 3:** Build every public page from Sanity data; wire revalidation.
-3. **Phase 4:** Inquiry flow with all validation, Turnstile, Resend (coach + auto-reply with playlist).
-4. **Phase 5:** YouTube sync via GitHub Actions.
-5. **Phase B:** Deploy to Netlify, configure all integrations.
-6. **Phase C/D:** Hardening + handover docs.
-
----
-
-**Ready for Phase 2.** No critical blockers in the current repo.
+Prompt 2 build, lint, and TypeScript results are recorded after the phase's final validation run.

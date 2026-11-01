@@ -13,7 +13,13 @@ export const video = defineType({
     defineField({ name: 'category', title: 'Category', type: 'string' }),
     defineField({ name: 'featured', title: 'Featured', type: 'boolean', initialValue: false }),
     defineField({ name: 'hidden', title: 'Hidden', type: 'boolean', initialValue: false }),
-    defineField({ name: 'isSuccessStory', title: 'Success Story', type: 'boolean', initialValue: false }),
+    defineField({
+      name: 'isSuccessStory',
+      title: 'Show in Success stories',
+      type: 'boolean',
+      description: 'Turn this on to show the video in the Success stories section.',
+      initialValue: false,
+    }),
     defineField({ name: 'order', title: 'Display Order', type: 'number', initialValue: 0 }),
     defineField({
       name: 'source',

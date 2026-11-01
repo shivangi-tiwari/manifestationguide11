@@ -1,13 +1,21 @@
 import { createClient } from 'next-sanity'
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
-const isBuildTime = !projectId || projectId === 'dummy-project-id'
+const configuredProjectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID?.trim()
+const isProductionBuild = process.env.NEXT_PHASE === 'phase-production-build'
+const projectId = configuredProjectId && configuredProjectId !== 'dummy-project-id'
+  ? configuredProjectId
+  : undefined
+const canSkipSanityForBuild = !projectId && isProductionBuild
+
+if (!projectId && !isProductionBuild) {
+  throw new Error('NEXT_PUBLIC_SANITY_PROJECT_ID must be configured outside the production build step.')
+}
 
 let sanityClient: ReturnType<typeof createClient> | null = null
 
-if (!isBuildTime) {
+if (projectId) {
   sanityClient = createClient({
-    projectId: projectId!,
+    projectId,
     dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
     apiVersion: '2024-01-01',
     useCdn: false,
@@ -19,10 +27,14 @@ export async function sanityFetch<T>({
   params = {},
   tags = ['sanity'],
 }: { query: string; params?: Record<string, unknown>; tags?: string[] }): Promise<T> {
-  if (isBuildTime || !sanityClient) {
+  if (canSkipSanityForBuild) {
     // Return empty data during build when Sanity credentials are not configured
     // This allows the build to complete without real Sanity credentials
     return [] as T
+  }
+
+  if (!sanityClient) {
+    throw new Error('Sanity client is unavailable despite configured project credentials.')
   }
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
