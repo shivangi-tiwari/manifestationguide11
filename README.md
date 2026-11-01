@@ -76,9 +76,13 @@ The scheduled GitHub Actions workflow can also be started manually from the repo
 
 Studio is mounted at `/studio`. The configuration is in `src/cms/sanity.config.ts`; schemas are in `src/cms/schemaTypes/`. Content changes are revalidated through the Sanity webhook route at `/api/revalidate`.
 
+The Studio menu includes Site Settings, pages, packages, FAQs, written success stories, videos, and inquiries. See [COACH-GUIDE.md](./COACH-GUIDE.md) for editing instructions and content behavior.
+
 ## Deployment
 
 The site is prepared for Netlify, with the YouTube sync scheduled through GitHub Actions. See [DEPLOY.md](./DEPLOY.md) for environment-variable setup, deploy steps, sync workflow setup, and rollback guidance.
+
+See [HANDOVER.md](./HANDOVER.md) for provider ownership and transfer checks, and [CREDITS.md](./CREDITS.md) for fonts and media credits. Replace `<SITE_URL>` in handover instructions with the confirmed production origin.
 
 ## Main project paths
 
@@ -90,3 +94,6 @@ The site is prepared for Netlify, with the YouTube sync scheduled through GitHub
 - `src/cms/` — embedded Studio configuration and schemas
 - `ARCHITECTURE.md` — architecture rules and deployment plan
 - `AUDIT.md` — current architecture audit and unresolved findings
+- `COACH-GUIDE.md` — Sanity editing instructions
+- `HANDOVER.md` — account-transfer checklist and recovery guidance
+- `CREDITS.md` — third-party typeface and asset credits
