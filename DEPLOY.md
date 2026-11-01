@@ -24,7 +24,7 @@ The Sanity dataset must be accessible to the site. Published reads can use the c
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Netlify | Public Turnstile widget key used by the inquiry form. |
 | `TURNSTILE_SECRET_KEY` | Netlify | Server-side Turnstile verification; inquiry submission fails closed without it. |
 | `RESEND_API_KEY` | Netlify | Sends inquiry notifications and visitor acknowledgements. |
-| `INQUIRY_TO_EMAIL` | Netlify | Inbox that receives inquiries. |
+| `INQUIRY_TO_EMAIL` | Netlify | Inbox that receives inquiry notifications; required for coach notifications. |
 | `INQUIRY_FROM_EMAIL` | Netlify | Verified sender address for inquiry email. |
 | `YOUTUBE_CHANNEL_ID` | Netlify | Channel used to load playlists and sync videos. |
 | `YOUTUBE_API_KEY` | Netlify | Server-side YouTube Data API access. |
@@ -33,6 +33,7 @@ The Sanity dataset must be accessible to the site. Published reads can use the c
 | `SITE_URL` | GitHub Actions secret | Base URL of the deployed site called by the sync workflow. |
 
 Use `.env.example` as the local variable-name reference. Do not copy secret values into it.
+Set `INQUIRY_TO_EMAIL` to the coach's inbox. The inquiry handler reports a clear configuration error if it is missing. Configure `RESEND_API_KEY` and a verified `INQUIRY_FROM_EMAIL` for notifications and visitor confirmations.
 
 ## GitHub Actions video sync
 
@@ -41,7 +42,16 @@ The workflow at `.github/workflows/youtube-sync.yml` runs daily at 03:00 UTC and
 - `SITE_URL`: the deployed site's base URL, without a path.
 - `CRON_SECRET`: the same secret configured in Netlify.
 
-The workflow calls `/api/cron/youtube-sync` and prints the JSON response without printing the secret. A successful call writes to Sanity; use a staging deployment and dataset when validating changes. Review `created`, `updated`, and `errors` in each run. The current sync updates existing video titles and descriptions, so do not run it against editor-authored text without first reviewing the open audit finding in `AUDIT.md`.
+For the first production sync, use these steps:
+
+Temporarily disable the scheduled GitHub Actions workflow before deploying this sync change. Call the route directly for the steps below, then re-enable the schedule only after Studio validation.
+
+1. Make an authenticated request to `/api/cron/youtube-sync?dryRun=1` with the configured `SITE_URL` and `CRON_SECRET`. This request reads YouTube and Sanity but writes nothing.
+2. Review `wouldCreate`, `wouldUpdate`, `skipped`, `errors`, and `warning`. Confirm the proposed new videos and thumbnail-only updates are expected.
+3. After approving the dry-run output, make the same authenticated request without `dryRun=1` to write the changes to Sanity. The scheduled workflow runs this normal write mode.
+4. Open Sanity Studio and check the new video documents, refreshed thumbnails, and preservation of editor-managed fields before relying on the production content.
+
+The workflow prints the JSON response without printing the secret. For code validation, use a staging deployment and dataset first.
 
 ## Revalidation
 

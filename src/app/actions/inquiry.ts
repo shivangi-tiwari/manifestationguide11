@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers'
 import { sanityWriteClient } from '@/lib/sanity/writeClient'
-import { getMandatoryPlaylistUrl } from '@/lib/sanity/mandatoryPlaylist'
+import { mandatoryPlaylistUrl } from '@/lib/sanity/mandatoryPlaylist'
 import { inquirySchema, type InquiryFormData } from '@/lib/inquirySchema'
 import { Resend } from 'resend'
 
@@ -133,27 +133,23 @@ async function sendCoachEmail(data: InquiryFormData): Promise<void> {
   })
 }
 
-async function sendVisitorAcknowledgement(data: InquiryFormData, playlistUrl?: string): Promise<void> {
+async function sendVisitorAcknowledgement(data: InquiryFormData): Promise<void> {
   const fromEmail = process.env.INQUIRY_FROM_EMAIL
   if (!fromEmail) throw new Error('INQUIRY_FROM_EMAIL is not configured.')
 
   const safeName = escapeHtml(data.name)
-  const playlistBlock = playlistUrl
-    ? `<div style="background: #CFE0D0; padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center;">
-         <p><strong>Before we start, please review this playlist:</strong></p>
-         <a href="${escapeHtml(playlistUrl)}">Watch the Playlist</a>
-       </div>`
-    : ''
+  const safePlaylistUrl = escapeHtml(mandatoryPlaylistUrl)
 
   await sendEmail({
     from: `Manifestation Coach <${fromEmail}>`,
     to: data.email,
-    subject: playlistUrl ? "Thanks for reaching out! Here's your playlist" : 'Thanks for reaching out!',
+    subject: 'Your inquiry has been received',
     html: `
       <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Thanks for your inquiry, ${safeName}!</h2>
-        <p>I've received your message. Thank you for getting in touch.</p>
-        ${playlistBlock}
+        <p>Your message has been received. We'll contact you as soon as someone is available.</p>
+        <p>In the meantime, you can explore the YouTube playlists here:</p>
+        <p><a href="${safePlaylistUrl}">Browse the YouTube playlists</a></p>
       </div>
     `,
   })
@@ -204,16 +200,9 @@ export async function submitInquiry(formData: FormData) {
     return { success: false, message: 'Unable to submit right now. Please try again later.' }
   }
 
-  let playlistUrl: string | undefined
-  try {
-    playlistUrl = await getMandatoryPlaylistUrl()
-  } catch (error) {
-    console.error('Failed to load the auto-reply playlist from Site Settings.', error)
-  }
-
   const emailResults = await Promise.allSettled([
     sendCoachEmail(data),
-    sendVisitorAcknowledgement(data, playlistUrl),
+    sendVisitorAcknowledgement(data),
   ])
   for (const result of emailResults) {
     if (result.status === 'rejected') {
@@ -221,5 +210,10 @@ export async function submitInquiry(formData: FormData) {
     }
   }
 
-  return { success: true, message: 'Inquiry submitted successfully' }
+  return {
+    success: true,
+    message: 'Inquiry submitted successfully',
+    coachEmailSent: emailResults[0].status === 'fulfilled',
+    visitorEmailSent: emailResults[1].status === 'fulfilled',
+  }
 }

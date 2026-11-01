@@ -41,20 +41,16 @@ interface YouTubeVideoItem {
 interface ExistingVideo {
   _id: string
   youtubeId: string
-  category: string
-  featured: boolean
-  hidden: boolean
-  isSuccessStory?: boolean
-  order: number
-  title: string
-  description: string
-  source: 'youtube-sync' | 'manual'
+  thumbnailUrl?: string
 }
 
-interface SyncResult {
-  created: number
-  updated: number
-  errors: string[]
+interface VideoCandidate {
+  youtubeId: string
+  title: string
+  description: string
+  thumbnailUrl: string
+  publishedAt: string
+  isSuccessStory: boolean
 }
 
 const MAX_RESULTS_PER_PAGE = 50
@@ -136,6 +132,10 @@ function getBestThumbnail(snippet: YouTubeVideoItem['snippet']): string | undefi
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
+  let created = 0
+  let updated = 0
+  let skipped = 0
+  const errors: string[] = []
 
   try {
     // Verify cron secret
@@ -147,6 +147,7 @@ export async function GET(request: NextRequest) {
 
     const channelId = process.env.YOUTUBE_CHANNEL_ID
     const apiKey = process.env.YOUTUBE_API_KEY
+    const dryRun = request.nextUrl.searchParams.get('dryRun') === '1'
 
     if (!channelId || !apiKey) {
       return NextResponse.json(
@@ -161,31 +162,19 @@ export async function GET(request: NextRequest) {
     const searchResults = await fetchAllChannelVideos(channelId, apiKey)
     console.log('[YouTube Sync] Found', searchResults.length, 'videos in channel')
 
-    if (searchResults.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No videos found in channel',
-        created: 0,
-        updated: 0,
-        durationMs: Date.now() - startTime,
-      })
-    }
-
     // 2. Fetch full details (description, thumbnails, status)
     const videoIds = searchResults.map((v) => v.id)
     const videoDetails = await fetchVideoDetails(videoIds, apiKey)
 
     // 3. Get existing videos from Sanity to preserve manual edits
     const existingVideos = await sanityWriteClient.fetch<ExistingVideo[]>(
-      `*[_type == "video"] { _id, youtubeId, category, featured, hidden, isSuccessStory, order, title, description, source }`
+      `*[_type == "video"] { _id, youtubeId, thumbnailUrl }`
     )
     const existingByYoutubeId = new Map(existingVideos.map((v) => [v.youtubeId, v]))
 
-    // 4. Prepare Sanity mutations
-    const mutations: any[] = []
-    let created = 0
-    let updated = 0
-    const errors: string[] = []
+    // 4. Plan only creates and thumbnail changes.
+    const toCreate: VideoCandidate[] = []
+    const toUpdate: Array<{ _id: string; youtubeId: string; thumbnailUrl: string }> = []
 
     for (const searchItem of searchResults) {
       const videoId = searchItem.id
@@ -198,69 +187,117 @@ export async function GET(request: NextRequest) {
 
       const snippet = details.snippet
       const thumbnailUrl = getBestThumbnail(snippet)
+      if (!thumbnailUrl) {
+        errors.push(`Missing thumbnail for video ${videoId}`)
+        continue
+      }
+
       const existing = existingByYoutubeId.get(videoId)
 
-      const docId = existing?._id ?? `video-${videoId}`
+      if (existing) {
+        if (existing.thumbnailUrl === thumbnailUrl) {
+          skipped++
+          continue
+        }
 
-      // Determine source: preserve 'manual' if already set, otherwise 'youtube-sync'
-      const source = existing?.source === 'manual' ? 'manual' : 'youtube-sync'
+        toUpdate.push({ _id: existing._id, youtubeId: videoId, thumbnailUrl })
+        continue
+      }
 
-      const videoDoc = {
-        _type: 'video',
-        _id: docId,
+      toCreate.push({
         youtubeId: videoId,
         title: snippet.title,
         description: snippet.description || '',
         thumbnailUrl,
         publishedAt: snippet.publishedAt,
-        category: existing?.category || '',
-        featured: existing?.featured ?? false,
-        hidden: existing?.hidden ?? false,
-        order: existing?.order ?? 0,
-        source,
-        ...(existing ? {} : { isSuccessStory: /success\s*stor/i.test(snippet.title) }),
-      }
-
-      if (existing) {
-        mutations.push({
-          patch: {
-            id: docId,
-            set: videoDoc,
-          },
-        })
-        updated++
-      } else {
-        mutations.push({
-          create: videoDoc,
-        })
-        created++
-      }
+        isSuccessStory: /success\s*stor/i.test(snippet.title),
+      })
     }
 
-    // 5. Execute mutations in batches
-    if (mutations.length > 0) {
-      const BATCH_SIZE = 100
-      for (let i = 0; i < mutations.length; i += BATCH_SIZE) {
-        const batch = mutations.slice(i, i + BATCH_SIZE)
-        await sanityWriteClient.transaction(batch).commit()
+    if (dryRun) {
+      created = toCreate.length
+      updated = toUpdate.length
+      const warning = errors.length > 0 ? 'Some videos could not be planned; review errors.' : null
+      return NextResponse.json({
+        success: true,
+        dryRun: true,
+        wouldCreate: toCreate,
+        wouldUpdate: toUpdate.map(({ youtubeId, thumbnailUrl }) => ({ youtubeId, thumbnailUrl })),
+        created,
+        updated,
+        skipped,
+        errors,
+        warning,
+        durationMs: Date.now() - startTime,
+      })
+    }
+
+    // A created ID and its initial fields are committed together; existing records get only thumbnailUrl.
+    const operations = [
+      ...toCreate.map((video) => ({ kind: 'create' as const, video })),
+      ...toUpdate.map((video) => ({ kind: 'update' as const, video })),
+    ]
+    const BATCH_SIZE = 50
+    for (let i = 0; i < operations.length; i += BATCH_SIZE) {
+      const batch = operations.slice(i, i + BATCH_SIZE)
+      const transaction = sanityWriteClient.transaction()
+
+      for (const operation of batch) {
+        if (operation.kind === 'create') {
+          const { video } = operation
+          const documentId = `video-${video.youtubeId}`
+          transaction
+            .createIfNotExists({ _id: documentId, _type: 'video' })
+            .patch(documentId, {
+              setIfMissing: {
+                title: video.title,
+                description: video.description,
+                publishedAt: video.publishedAt,
+                youtubeId: video.youtubeId,
+                source: 'youtube-sync',
+                isSuccessStory: video.isSuccessStory,
+              },
+              set: { thumbnailUrl: video.thumbnailUrl },
+            })
+        } else {
+          transaction.patch(operation.video._id, {
+            set: { thumbnailUrl: operation.video.thumbnailUrl },
+          })
+        }
       }
+
+      await transaction.commit()
+      created += batch.filter((operation) => operation.kind === 'create').length
+      updated += batch.filter((operation) => operation.kind === 'update').length
     }
 
     const durationMs = Date.now() - startTime
-    console.log('[YouTube Sync] Completed:', { created, updated, errors: errors.length, durationMs })
+    const warning = errors.length > 0 ? 'Some videos could not be synced; review errors.' : null
+    console.log('[YouTube Sync] Completed:', { created, updated, skipped, errors: errors.length, durationMs })
 
     return NextResponse.json({
       success: true,
       created,
       updated,
+      skipped,
       errors,
+      warning,
       durationMs,
     })
   } catch (error) {
     console.error('[YouTube Sync] Error:', error)
     const message = error instanceof Error ? error.message : 'Unknown error'
+    errors.push(message)
     return NextResponse.json(
-      { error: 'Sync failed', message, durationMs: Date.now() - startTime },
+      {
+        success: false,
+        created,
+        updated,
+        skipped,
+        errors,
+        warning: 'The sync did not complete successfully; review errors.',
+        durationMs: Date.now() - startTime,
+      },
       { status: 500 }
     )
   }

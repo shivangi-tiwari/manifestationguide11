@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from 'react'
 import { SectionImage } from '@/components/ui/SectionImage'
 import { Section, SectionHeader } from '@/components/ui/Section'
 import { Card } from '@/components/ui/Card'
@@ -26,7 +23,6 @@ function MustWatchCallout({
   playlists: YouTubePlaylist[]
   playlistsError?: boolean
 }) {
-  const [previewLoaded, setPreviewLoaded] = useState(false)
   const displayPlaylists = [...playlists]
     .map((playlist) => ({
       ...playlist,
@@ -47,37 +43,6 @@ function MustWatchCallout({
         <p className="mb-6 text-cream">
           Watching these is a must to get a gist of what you need to work on, whether individually or with me.
         </p>
-        {(playlistId || playlistUrl) && (
-          <div className="mx-auto w-full max-w-3xl">
-            {playlistId && (
-              previewLoaded ? (
-                <iframe
-                  className="aspect-video w-full rounded-card border-0"
-                  src={`https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(playlistId)}`}
-                  title="Must-Watch playlist"
-                  loading="lazy"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  referrerPolicy="strict-origin-when-cross-origin"
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setPreviewLoaded(true)}
-                  className="group flex aspect-video w-full flex-col items-center justify-center gap-4 rounded-card bg-sage p-6 text-olive transition-colors hover:bg-sage/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-butter"
-                  aria-label="Watch the playlist"
-                >
-                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-olive text-cream transition-transform group-hover:scale-105">
-                    <svg className="ml-1 h-10 w-10" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </span>
-                  <span className="text-lg font-semibold">Watch the playlist</span>
-                </button>
-              )
-            )}
-          </div>
-        )}
         {displayPlaylists.length > 0 && (
           <div className="text-left">
             <ul

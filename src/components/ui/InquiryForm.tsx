@@ -51,6 +51,8 @@ function InquiryFormInner({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [coachEmailSent, setCoachEmailSent] = useState<boolean | null>(null)
+  const [visitorEmailSent, setVisitorEmailSent] = useState<boolean | null>(null)
   const turnstileContainerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
 
@@ -143,6 +145,8 @@ function InquiryFormInner({
     e.preventDefault()
     setSubmitStatus('idle')
     setErrorMessage('')
+    setCoachEmailSent(null)
+    setVisitorEmailSent(null)
 
     const result = inquirySchema.safeParse(formData)
     if (!result.success) {
@@ -169,6 +173,8 @@ function InquiryFormInner({
       })
       const response = await submitInquiry(formDataToSubmit)
       if (response.success) {
+        setCoachEmailSent(response.coachEmailSent === true)
+        setVisitorEmailSent(response.visitorEmailSent === true)
         setSubmitStatus('success')
         setFormData({
           name: '',
@@ -205,8 +211,23 @@ function InquiryFormInner({
         </div>
         <h3 className="text-heading-xl font-display font-bold text-cream mb-2">Inquiry Submitted!</h3>
         <p className="text-cream max-w-md mx-auto">
-          Thank you for reaching out. Your inquiry has been submitted.
+          Thank you for reaching out. Your inquiry has been received, and we&apos;ll contact you when someone is available.
         </p>
+        {visitorEmailSent === true && (
+          <p className="mx-auto mt-3 max-w-md text-cream">
+            A confirmation email with the YouTube playlists link was sent to the email address you entered.
+          </p>
+        )}
+        {visitorEmailSent === false && (
+          <p className="mx-auto mt-3 max-w-md text-cream" role="status">
+            Your inquiry is saved, but the confirmation email could not be sent. Please check that your email address is correct or contact us directly.
+          </p>
+        )}
+        {coachEmailSent === false && (
+          <p className="mx-auto mt-3 max-w-md text-cream" role="status">
+            Your inquiry is saved, but the notification email could not be sent. Please contact us using the email in the Connect section.
+          </p>
+        )}
       </div>
     )
   }

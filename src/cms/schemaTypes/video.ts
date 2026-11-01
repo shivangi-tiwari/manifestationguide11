@@ -10,7 +10,7 @@ export const video = defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
-      description: 'Synced from YouTube; manual edits are currently replaced during sync.',
+      description: 'Imported from YouTube when first created; later syncs preserve editor changes.',
       validation: (r) => r.required(),
     }),
     defineField({
@@ -24,7 +24,7 @@ export const video = defineType({
       name: 'description',
       title: 'Description',
       type: 'text',
-      description: 'Synced from YouTube; manual edits are currently replaced during sync.',
+      description: 'Imported from YouTube when first created; later syncs preserve editor changes.',
     }),
     defineField({ name: 'thumbnailUrl', title: 'Thumbnail URL', type: 'url', readOnly: true }),
     defineField({ name: 'publishedAt', title: 'Published At', type: 'datetime', readOnly: true }),
