@@ -83,4 +83,4 @@ The main section components use the botanical palette and shared image-frame com
 
 ## Validation
 
-Prompt 2 build, lint, and TypeScript results are recorded after the phase's final validation run.
+`npm run build`, `npm run lint`, and `npx tsc --noEmit` pass. The build and lint report two `<img>` warnings in legacy `About.tsx` and `SuccessStories.tsx`; the build also logs a dynamic-server-usage diagnostic for the request-dependent YouTube cron route before classifying it as dynamic.
